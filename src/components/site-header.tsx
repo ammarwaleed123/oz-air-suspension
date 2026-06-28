@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n";
 import { LocaleSwitcher } from "./locale-switcher";
+import { MobileNav } from "./mobile-nav";
 
 export function SiteHeader({
   locale,
@@ -22,7 +23,7 @@ export function SiteHeader({
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/10 bg-surface/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+      <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href={base} className="text-lg font-bold tracking-tight">
           {dict.meta.siteName}
         </Link>
@@ -40,13 +41,24 @@ export function SiteHeader({
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link href={`${base}/cart`} className="text-sm font-medium">
+          <Link
+            href={`${base}/cart`}
+            className="hidden text-sm font-medium sm:inline"
+          >
             {dict.nav.cart}
           </Link>
-          <Link href={`${base}/account`} className="text-sm font-medium">
+          <Link
+            href={`${base}/account`}
+            className="hidden text-sm font-medium sm:inline"
+          >
             {dict.nav.account}
           </Link>
           <LocaleSwitcher current={locale} />
+          <MobileNav
+            links={links}
+            menuLabel={dict.common.menu}
+            closeLabel={dict.common.close}
+          />
         </div>
       </div>
     </header>

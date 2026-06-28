@@ -28,6 +28,11 @@ export type Dictionary = {
     price: string;
     brand: string;
     manufactureDate: string;
+    menu: string;
+    close: string;
+    pickCar: string;
+    noResults: string;
+    years: string;
   };
   home: {
     heroTitle: string;
@@ -42,8 +47,23 @@ export type Dictionary = {
     setups: string;
     features: string;
     pickSetup: string;
+    choosePrompt: string;
+    noCars: string;
+    disclaimer: string;
+    setupLabels: {
+      low_normal_slow: string;
+      low_fast: string;
+      down_dual: string;
+      down_single: string;
+    };
   };
-  coilovers: { title: string; subtitle: string };
+  coilovers: {
+    title: string;
+    subtitle: string;
+    choosePrompt: string;
+    noCars: string;
+    noneForCar: string;
+  };
   rims: {
     title: string;
     subtitle: string;
@@ -54,6 +74,10 @@ export type Dictionary = {
     finish: string;
     filter: string;
     clearFilters: string;
+    any: string;
+    apply: string;
+    noResults: string;
+    resultsCount: string;
   };
   booking: {
     title: string;

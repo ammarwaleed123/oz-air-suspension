@@ -31,6 +31,11 @@ const en: Dictionary = {
     price: "Price",
     brand: "Brand",
     manufactureDate: "Manufacture date",
+    menu: "Menu",
+    close: "Close",
+    pickCar: "Choose your car",
+    noResults: "No results",
+    years: "Years",
   },
   home: {
     heroTitle: "Drop it right.",
@@ -46,10 +51,23 @@ const en: Dictionary = {
     setups: "Setups",
     features: "What's included",
     pickSetup: "Choose your setup",
+    choosePrompt: "Choose your car to see its air kit and the four setups.",
+    noCars: "No cars available yet.",
+    disclaimer:
+      "Price includes installation. Excludes shocks, coilovers, and strut mounts.",
+    setupLabels: {
+      low_normal_slow: "Low Normal Slow",
+      low_fast: "Low Fast",
+      down_dual: "Down Dual",
+      down_single: "Down Single",
+    },
   },
   coilovers: {
     title: "Coilovers",
     subtitle: "Pick by brand and manufacture date.",
+    choosePrompt: "Choose your car to see the coilovers available for it.",
+    noCars: "No cars with coilovers yet.",
+    noneForCar: "No coilovers listed for this car.",
   },
   rims: {
     title: "Rims",
@@ -61,6 +79,10 @@ const en: Dictionary = {
     finish: "Finish",
     filter: "Filter",
     clearFilters: "Clear filters",
+    any: "All",
+    apply: "Apply",
+    noResults: "No rims match your filters.",
+    resultsCount: "rims",
   },
   booking: {
     title: "Book your install",

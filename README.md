@@ -73,9 +73,14 @@ drizzle.config.ts
 
 ## Build roadmap
 
-1. ✅ **Foundation** — project, DB tables, bilingual scaffolding _(this step)_
-2. Catalog — air-kit / coilover / rim browse + detail pages
+1. ✅ **Foundation** — project, DB tables, bilingual scaffolding
+2. ✅ **Catalog** — air-kit / coilover / rim browse + detail pages, car pickers,
+   rim spec filter, working mobile nav
 3. Accounts, cart, checkout, deposit (Paymob/Kashier)
 4. Scheduling engine — capacity queries, slot picker, no-show handling
 5. Extras — Builds gallery, Air-vs-Coilovers explainer, WhatsApp/owner pings, deploy
-```
+
+## Known decisions / revisit later
+
+- Catalog list pages use `force-dynamic` for now; revisit caching strategy in
+  the step 6 hardening pass once admin-driven cache invalidation exists.

@@ -31,6 +31,11 @@ const ar: Dictionary = {
     price: "السعر",
     brand: "الماركة",
     manufactureDate: "تاريخ الصنع",
+    menu: "القائمة",
+    close: "إغلاق",
+    pickCar: "اختر سيارتك",
+    noResults: "لا توجد نتائج",
+    years: "الموديلات",
   },
   home: {
     heroTitle: "نزّلها صح.",
@@ -46,10 +51,23 @@ const ar: Dictionary = {
     setups: "التجهيزات",
     features: "ما يشمله الطقم",
     pickSetup: "اختر التجهيز المناسب",
+    choosePrompt: "اختر سيارتك لعرض طقم الهواء والتجهيزات الأربعة.",
+    noCars: "لا توجد سيارات متاحة حاليًا.",
+    disclaimer:
+      "السعر يشمل التركيب، ولا يشمل المساعدات (الشوكات) ولا الكويل أوفر ولا قواعد المساعدات.",
+    setupLabels: {
+      low_normal_slow: "منخفض - عادي - بطيء",
+      low_fast: "منخفض - سريع",
+      down_dual: "داون - مزدوج",
+      down_single: "داون - مفرد",
+    },
   },
   coilovers: {
     title: "كويل أوفر",
     subtitle: "اختر حسب الماركة وتاريخ الصنع.",
+    choosePrompt: "اختر سيارتك لعرض الكويل أوفر المتاح لها.",
+    noCars: "لا توجد سيارات بها كويل أوفر حاليًا.",
+    noneForCar: "لا يوجد كويل أوفر مدرج لهذه السيارة.",
   },
   rims: {
     title: "الجنوط",
@@ -61,6 +79,10 @@ const ar: Dictionary = {
     finish: "التشطيب",
     filter: "تصفية",
     clearFilters: "مسح التصفية",
+    any: "الكل",
+    apply: "تطبيق",
+    noResults: "لا توجد جنوط مطابقة لاختيارك.",
+    resultsCount: "جنط",
   },
   booking: {
     title: "احجز موعد التركيب",
