@@ -5,6 +5,8 @@ import { getDictionary } from "@/i18n";
 import { getCoiloversByCarSlug } from "@/db/queries";
 import { localizedName, formatMonthYear } from "@/lib/catalog";
 import { formatPrice } from "@/lib/money";
+import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductImage } from "@/components/product-image";
 
 export default async function CoiloverListPage({
   params,
@@ -45,6 +47,9 @@ export default async function CoiloverListPage({
               key={co.id}
               className="flex flex-col rounded-xl border border-black/10 bg-white p-5"
             >
+              <div className="mb-3">
+                <ProductImage src={co.imageUrl} alt={co.brand} />
+              </div>
               <span className="text-lg font-semibold">{co.brand}</span>
               <span className="mt-1 text-sm text-ink/50">
                 {dict.common.manufactureDate}:{" "}
@@ -58,6 +63,14 @@ export default async function CoiloverListPage({
               <span className="mt-4 text-xl font-bold text-accent">
                 {formatPrice(co.pricePiastres, typedLocale)}
               </span>
+              <div className="mt-3">
+                <AddToCartButton
+                  locale={typedLocale}
+                  kind="coilover"
+                  productId={co.id}
+                  label={dict.common.addToCart}
+                />
+              </div>
             </li>
           ))}
         </ul>

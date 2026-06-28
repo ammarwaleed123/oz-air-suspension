@@ -1,7 +1,7 @@
 import "server-only";
-import { and, asc, desc, eq, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, sql, type SQL } from "drizzle-orm";
 import { db } from "./client";
-import { airKits, cars, coilovers, rims } from "./schema";
+import { airKits, cars, coilovers, orders, rims } from "./schema";
 import type { SetupType } from "@/lib/catalog";
 
 // All catalog reads live here so pages stay thin and queries stay efficient
@@ -9,7 +9,8 @@ import type { SetupType } from "@/lib/catalog";
 
 // ── Air kits ────────────────────────────────────────────────────────
 
-// Cars that have an active air kit (the air-kit car picker).
+// Cars that have an active air kit (the air-kit car picker). The card image
+// prefers the air kit's own image, falling back to the car's.
 export async function getAirKitCars() {
   return db
     .select({
@@ -17,7 +18,7 @@ export async function getAirKitCars() {
       slug: cars.slug,
       nameEn: cars.nameEn,
       nameAr: cars.nameAr,
-      imageUrl: cars.imageUrl,
+      imageUrl: sql<string | null>`coalesce(${airKits.imageUrl}, ${cars.imageUrl})`,
       yearStart: cars.yearStart,
       yearEnd: cars.yearEnd,
     })
@@ -45,21 +46,31 @@ export async function getAirKitByCarSlug(slug: string) {
 
 // ── Coilovers ───────────────────────────────────────────────────────
 
-// Cars that have at least one active coilover (the coilover car picker).
+// Cars that have at least one active coilover (the coilover car picker). The
+// card image prefers the car's image, falling back to any coilover's image.
 export async function getCoiloverCars() {
   return db
-    .selectDistinct({
+    .select({
       id: cars.id,
       slug: cars.slug,
       nameEn: cars.nameEn,
       nameAr: cars.nameAr,
-      imageUrl: cars.imageUrl,
+      imageUrl: sql<string | null>`coalesce(${cars.imageUrl}, min(${coilovers.imageUrl}))`,
       yearStart: cars.yearStart,
       yearEnd: cars.yearEnd,
     })
     .from(cars)
     .innerJoin(coilovers, eq(coilovers.carId, cars.id))
     .where(and(eq(cars.isActive, true), eq(coilovers.isActive, true)))
+    .groupBy(
+      cars.id,
+      cars.slug,
+      cars.nameEn,
+      cars.nameAr,
+      cars.imageUrl,
+      cars.yearStart,
+      cars.yearEnd
+    )
     .orderBy(asc(cars.slug));
 }
 
@@ -147,6 +158,28 @@ export async function getRimFilterOptions() {
     boltPatterns: boltPatterns.map((r) => r.v),
     offsets: offsets.map((r) => r.v),
     finishes: finishes.map((r) => r.v),
+  };
+}
+
+// ── Revenue (owner-only) ────────────────────────────────────────────
+
+// Money totals across paid/completed orders. Exposed only behind an owner
+// guard (see admin/revenue). Returns 0s when there are no orders yet.
+export async function getRevenueSummary() {
+  // Revenue = orders that reached deposit_paid, balance_paid, or completed.
+  const [row] = await db
+    .select({
+      totalPiastres: sql<number>`coalesce(sum(${orders.subtotalPiastres}), 0)`,
+      paidOrders: count(orders.id),
+    })
+    .from(orders)
+    .where(
+      sql`${orders.status} in ('deposit_paid','balance_paid','completed')`
+    );
+
+  return {
+    totalPiastres: Number(row?.totalPiastres ?? 0),
+    paidOrders: Number(row?.paidOrders ?? 0),
   };
 }
 

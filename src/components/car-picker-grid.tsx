@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { localizedName } from "@/lib/catalog";
+import { ProductImage } from "./product-image";
 
 type PickerCar = {
   slug: string;
@@ -8,6 +9,7 @@ type PickerCar = {
   nameAr: string;
   yearStart: number | null;
   yearEnd: number | null;
+  imageUrl?: string | null;
 };
 
 // Shared car picker used by both Air Kits and Coilovers. `basePath` is the
@@ -43,6 +45,12 @@ export function CarPickerGrid({
               href={`${basePath}/${car.slug}`}
               className="flex h-full flex-col rounded-xl border border-black/10 bg-white p-5 transition-colors hover:border-accent"
             >
+              <div className="mb-3">
+                <ProductImage
+                  src={car.imageUrl}
+                  alt={localizedName(car, locale)}
+                />
+              </div>
               <span className="text-lg font-semibold">
                 {localizedName(car, locale)}
               </span>

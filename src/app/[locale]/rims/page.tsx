@@ -5,6 +5,8 @@ import { getDictionary, type Dictionary } from "@/i18n";
 import { getRims, getRimFilterOptions, type RimFilters } from "@/db/queries";
 import { localizedName } from "@/lib/catalog";
 import { formatPrice } from "@/lib/money";
+import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductImage } from "@/components/product-image";
 
 // Filtered by query params against live inventory.
 export const dynamic = "force-dynamic";
@@ -75,6 +77,12 @@ export default async function RimsPage({
               key={rim.id}
               className="flex flex-col rounded-xl border border-black/10 bg-white p-5"
             >
+              <div className="mb-3">
+                <ProductImage
+                  src={rim.imageUrl}
+                  alt={localizedName(rim, typedLocale)}
+                />
+              </div>
               <span className="text-lg font-semibold">
                 {localizedName(rim, typedLocale)}
               </span>
@@ -93,6 +101,14 @@ export default async function RimsPage({
               <span className="mt-4 text-xl font-bold text-accent">
                 {formatPrice(rim.pricePiastres, typedLocale)}
               </span>
+              <div className="mt-3">
+                <AddToCartButton
+                  locale={typedLocale}
+                  kind="rim"
+                  productId={rim.id}
+                  label={dict.common.addToCart}
+                />
+              </div>
             </li>
           ))}
         </ul>

@@ -76,7 +76,9 @@ drizzle.config.ts
 1. ✅ **Foundation** — project, DB tables, bilingual scaffolding
 2. ✅ **Catalog** — air-kit / coilover / rim browse + detail pages, car pickers,
    rim spec filter, working mobile nav
-3. Accounts, cart, checkout, deposit (Paymob/Kashier)
+3. ✅ **Accounts + cart** — Auth.js (bcrypt) auth, customer/staff/owner roles,
+   server-side cart & 10% deposit, guarded admin shell. (Checkout/payment via
+   Paymob/Kashier still to come.)
 4. Scheduling engine — capacity queries, slot picker, no-show handling
 5. Extras — Builds gallery, Air-vs-Coilovers explainer, WhatsApp/owner pings, deploy
 
@@ -84,3 +86,17 @@ drizzle.config.ts
 
 - Catalog list pages use `force-dynamic` for now; revisit caching strategy in
   the step 6 hardening pass once admin-driven cache invalidation exists.
+
+## Pre-launch hardening checklist
+
+These MUST NOT be forgotten before going public:
+
+- [ ] **HARD GATE — remove test accounts.** Delete **all `@test.local`
+      accounts** from the database and create the real owner via
+      `npm run create:user -- owner <email> <password> "<name>" <phone>`.
+      The seeded `owner@test.local` / `staff@test.local` / `customer@test.local`
+      accounts have known passwords and must never reach production.
+- [ ] **Login brute-force / rate limiting** is NOT yet implemented. Add
+      throttling / lockout on the credentials login in the step 6 hardening pass.
+- [ ] **Catalog caching** — revisit the `force-dynamic` choice on list pages
+      (see "Known decisions" above) once admin-driven cache invalidation exists.

@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // ────────────────────────────────────────────────────────────────────
 // Enums
@@ -25,7 +25,8 @@ export const setupTypeEnum = pgEnum("setup_type", [
   "down_single", // 85k
 ]);
 
-export const userRoleEnum = pgEnum("user_role", ["customer", "owner"]);
+// customer = public shopper; staff = schedule/bookings only; owner = full access.
+export const userRoleEnum = pgEnum("user_role", ["customer", "staff", "owner"]);
 
 export const productKindEnum = pgEnum("product_kind", [
   "air_kit_setup",
@@ -104,6 +105,8 @@ export const airKits = pgTable(
     titleAr: text("title_ar").notNull(),
     descriptionEn: text("description_en"),
     descriptionAr: text("description_ar"),
+    // Optional product image (coilovers and rims already have their own).
+    imageUrl: text("image_url"),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -325,6 +328,50 @@ export const bookingDays = pgTable(
 );
 
 // ────────────────────────────────────────────────────────────────────
+// Cart — references catalog products only, NEVER prices. All money is
+// computed server-side from the catalog at view/checkout time, so the
+// browser can never dictate an amount.
+// ────────────────────────────────────────────────────────────────────
+
+export const cartItems = pgTable(
+  "cart_items",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: productKindEnum("kind").notNull(),
+    // Exactly one of these is set, matching `kind`.
+    airKitSetupId: integer("air_kit_setup_id").references(
+      () => airKitSetups.id,
+      { onDelete: "cascade" }
+    ),
+    coiloverId: integer("coilover_id").references(() => coilovers.id, {
+      onDelete: "cascade",
+    }),
+    rimId: integer("rim_id").references(() => rims.id, { onDelete: "cascade" }),
+    quantity: integer("quantity").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("cart_items_user_idx").on(t.userId),
+    // Partial unique indexes guarantee at most one row per (user, product),
+    // so "add" merges into a quantity bump instead of duplicating.
+    uniqueIndex("cart_items_user_setup_uq")
+      .on(t.userId, t.airKitSetupId)
+      .where(sql`${t.airKitSetupId} is not null`),
+    uniqueIndex("cart_items_user_coilover_uq")
+      .on(t.userId, t.coiloverId)
+      .where(sql`${t.coiloverId} is not null`),
+    uniqueIndex("cart_items_user_rim_uq")
+      .on(t.userId, t.rimId)
+      .where(sql`${t.rimId} is not null`),
+  ]
+);
+
+// ────────────────────────────────────────────────────────────────────
 // "Request your car" inbox (owner-only admin)
 // ────────────────────────────────────────────────────────────────────
 
@@ -369,6 +416,10 @@ export const coiloversRelations = relations(coilovers, ({ one }) => ({
   car: one(cars, { fields: [coilovers.carId], references: [cars.id] }),
 }));
 
+export const cartItemsRelations = relations(cartItems, ({ one }) => ({
+  user: one(users, { fields: [cartItems.userId], references: [users.id] }),
+}));
+
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),
   items: many(orderItems),
@@ -406,4 +457,5 @@ export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type BookingDay = typeof bookingDays.$inferSelect;
+export type CartItem = typeof cartItems.$inferSelect;
 export type CarRequest = typeof carRequests.$inferSelect;

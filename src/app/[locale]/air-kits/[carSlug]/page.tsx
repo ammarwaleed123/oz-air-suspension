@@ -5,6 +5,8 @@ import { getDictionary } from "@/i18n";
 import { getAirKitByCarSlug } from "@/db/queries";
 import { orderSetups, localizedName, type SetupType } from "@/lib/catalog";
 import { formatPrice } from "@/lib/money";
+import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductImage } from "@/components/product-image";
 
 export default async function AirKitProductPage({
   params,
@@ -32,7 +34,19 @@ export default async function AirKitProductPage({
         ← {dict.airKits.title}
       </Link>
 
-      <h1 className="mt-3 text-3xl font-bold">
+      {kit.imageUrl && (
+        <div className="mt-4 max-w-2xl">
+          <ProductImage
+            src={kit.imageUrl}
+            alt={localizedName(car, typedLocale)}
+            aspect="aspect-[16/9]"
+            sizes="(max-width: 768px) 100vw, 42rem"
+            priority
+          />
+        </div>
+      )}
+
+      <h1 className="mt-4 text-3xl font-bold">
         {localizedName(car, typedLocale)}
       </h1>
       <p className="mt-1 text-ink/60">
@@ -85,6 +99,19 @@ export default async function AirKitProductPage({
                   </td>
                 );
               })}
+            </tr>
+            <tr>
+              <th className="p-3" />
+              {setups.map((s) => (
+                <td key={s.id} className="p-3 align-top">
+                  <AddToCartButton
+                    locale={typedLocale}
+                    kind="air_kit_setup"
+                    productId={s.id}
+                    label={dict.common.addToCart}
+                  />
+                </td>
+              ))}
             </tr>
           </tbody>
         </table>

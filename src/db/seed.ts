@@ -38,6 +38,7 @@ async function main() {
       titleAr: "طقم تعليق هوائي — مرسيدس C-Class W205",
       descriptionEn: "Complete bolt-on air suspension kit for the W205.",
       descriptionAr: "طقم تعليق هوائي كامل وجاهز للتركيب على W205.",
+      imageUrl: "https://picsum.photos/seed/airkit-w205/800/450",
     })
     .returning();
 
@@ -81,6 +82,7 @@ async function main() {
       pricePiastres: egp(48000),
       descriptionEn: "BC Racing BR series, 30-way adjustable.",
       descriptionAr: "BC Racing سلسلة BR، قابلة للتعديل 30 درجة.",
+      imageUrl: "https://picsum.photos/seed/coilover-bc/600/450",
     },
     {
       carId: car.id,
@@ -89,6 +91,7 @@ async function main() {
       pricePiastres: egp(82000),
       descriptionEn: "KW Variant 3, inox-line.",
       descriptionAr: "KW Variant 3، خط إينوكس.",
+      imageUrl: "https://picsum.photos/seed/coilover-kw/600/450",
     },
   ]);
 
@@ -104,6 +107,7 @@ async function main() {
       finish: "Gloss Black",
       pricePiastres: egp(60000),
       stock: 4,
+      imageUrl: "https://picsum.photos/seed/rim-vossen/600/450",
     },
     {
       nameEn: "BBS LM 18\"",
@@ -115,6 +119,7 @@ async function main() {
       finish: "Diamond Silver",
       pricePiastres: egp(72000),
       stock: 2,
+      imageUrl: "https://picsum.photos/seed/rim-bbs/600/450",
     },
   ]);
 
