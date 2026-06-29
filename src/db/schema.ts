@@ -285,11 +285,24 @@ export const bookings = pgTable(
     userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // The car being worked on (for the owner's schedule). Derived from the
+    // order's installable items at booking time.
+    carId: integer("car_id").references(() => cars.id, { onDelete: "set null" }),
     // The two working days the car occupies (endDate = next working day
     // after startDate; Sundays are skipped by the scheduling engine).
     startDate: date("start_date").notNull(),
     endDate: date("end_date").notNull(),
     status: bookingStatusEnum("status").notNull().default("held"),
+    // A "held" booking reserves the slot until this time; after it passes, the
+    // hold no longer counts toward capacity (the slot reopens). NULL once
+    // confirmed. This is what makes the 15-minute checkout hold race-safe.
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    // Air-kit gate: set when the customer states their car already has
+    // coilovers installed (so the air-kit install is allowed without coilovers
+    // in the order). Shown on the owner's schedule.
+    coiloversAlreadyInstalled: boolean("coilovers_already_installed")
+      .notNull()
+      .default(false),
     depositPiastres: integer("deposit_piastres").notNull(),
     depositMethod: paymentMethodEnum("deposit_method"),
     depositPaidAt: timestamp("deposit_paid_at", { withTimezone: true }),
@@ -433,6 +446,7 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   order: one(orders, { fields: [bookings.orderId], references: [orders.id] }),
   user: one(users, { fields: [bookings.userId], references: [users.id] }),
+  car: one(cars, { fields: [bookings.carId], references: [cars.id] }),
   days: many(bookingDays),
 }));
 

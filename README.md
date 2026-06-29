@@ -79,7 +79,8 @@ drizzle.config.ts
 3. ✅ **Accounts + cart** — Auth.js (bcrypt) auth, customer/staff/owner roles,
    server-side cart & 10% deposit, guarded admin shell. (Checkout/payment via
    Paymob/Kashier still to come.)
-4. Scheduling engine — capacity queries, slot picker, no-show handling
+4. ✅ **Scheduling engine** — race-safe 2-day slot booking (Sunday skipped),
+   15-min hold + simulated deposit, air-kit coilover gate, owner/staff schedule
 5. Extras — Builds gallery, Air-vs-Coilovers explainer, WhatsApp/owner pings, deploy
 
 ## Known decisions / revisit later

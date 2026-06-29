@@ -22,6 +22,7 @@ export type CartLine = {
   nameAr: string;
   setupType?: SetupType; // air kit setups
   manufactureDate?: string; // coilovers
+  carId?: number | null; // the car an install item belongs to (not rims)
 };
 
 export type CartSummary = {
@@ -105,6 +106,7 @@ export async function computeCart(userId: number): Promise<CartSummary> {
         nameEn: s.airKit.car.nameEn,
         nameAr: s.airKit.car.nameAr,
         setupType: s.setupType as SetupType,
+        carId: s.airKit.car.id,
       });
     } else if (item.kind === "coilover" && item.coiloverId) {
       const c = coiloverMap.get(item.coiloverId);
@@ -121,6 +123,7 @@ export async function computeCart(userId: number): Promise<CartSummary> {
         nameEn: c.brand,
         nameAr: c.brand,
         manufactureDate: c.manufactureDate,
+        carId: c.carId,
       });
     } else if (item.kind === "rim" && item.rimId) {
       const r = rimMap.get(item.rimId);
@@ -156,6 +159,15 @@ export async function computeCart(userId: number): Promise<CartSummary> {
     depositPiastres,
     itemCount,
   };
+}
+
+// Total quantity of items in a user's cart (for the header badge).
+export async function getCartCount(userId: number): Promise<number> {
+  const rows = await db
+    .select({ q: cartItems.quantity })
+    .from(cartItems)
+    .where(eq(cartItems.userId, userId));
+  return rows.reduce((sum, r) => sum + r.q, 0);
 }
 
 // ── Mutations (validated against the DB before touching the cart) ──────

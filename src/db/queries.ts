@@ -44,6 +44,10 @@ export async function getAirKitByCarSlug(slug: string) {
   });
 }
 
+export async function getCarById(id: number) {
+  return db.query.cars.findFirst({ where: (c, { eq }) => eq(c.id, id) });
+}
+
 // ── Coilovers ───────────────────────────────────────────────────────
 
 // Cars that have at least one active coilover (the coilover car picker). The

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n";
 import { getSession } from "@/lib/auth-helpers";
+import { getCartCount } from "@/lib/cart";
 import { LocaleSwitcher } from "./locale-switcher";
 import { MobileNav } from "./mobile-nav";
 
@@ -20,6 +21,17 @@ export async function SiteHeader({
   const role = session?.user?.role;
   const isAuthed = Boolean(session?.user);
   const isAdmin = role === "owner" || role === "staff";
+  // Owner/staff don't shop, so they get no cart at all.
+  const showCart = !isAdmin;
+
+  // Cart count for the badge (cheap count query; id comes from the JWT).
+  let cartCount = 0;
+  if (showCart && session?.user?.id) {
+    const uid = Number(session.user.id);
+    if (Number.isInteger(uid)) cartCount = await getCartCount(uid);
+  }
+  const cartLabel =
+    cartCount > 0 ? `${dict.nav.cart} (${cartCount})` : dict.nav.cart;
 
   const sectionLinks = [
     { href: `${base}/air-kits`, label: dict.nav.airKits },
@@ -33,7 +45,7 @@ export async function SiteHeader({
   // Mobile menu mirrors the section links plus account-context entries.
   const mobileLinks = [
     ...sectionLinks,
-    { href: `${base}/cart`, label: dict.nav.cart },
+    ...(showCart ? [{ href: `${base}/cart`, label: cartLabel }] : []),
     isAuthed
       ? { href: `${base}/account`, label: dict.nav.account }
       : { href: `${base}/login`, label: dict.nav.signIn },
@@ -68,12 +80,14 @@ export async function SiteHeader({
               {dict.nav.admin}
             </Link>
           )}
-          <Link
-            href={`${base}/cart`}
-            className="hidden text-sm font-medium sm:inline"
-          >
-            {dict.nav.cart}
-          </Link>
+          {showCart && (
+            <Link
+              href={`${base}/cart`}
+              className="hidden text-sm font-medium sm:inline"
+            >
+              {cartLabel}
+            </Link>
+          )}
           <Link
             href={isAuthed ? `${base}/account` : `${base}/login`}
             className="hidden text-sm font-medium sm:inline"

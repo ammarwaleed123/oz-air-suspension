@@ -15,6 +15,19 @@ export function toISODate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+// "Today" as seen in the shop's timezone (Cairo). Using the server's UTC date
+// directly could roll over a day early/late in the evening, so anchor the
+// "earliest is tomorrow" rule to local Egyptian time. en-CA formats as
+// YYYY-MM-DD.
+export function todayInCairo(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Cairo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 export function parseISODate(iso: string): Date {
   // Force midnight UTC so day-of-week math is stable.
   return new Date(`${iso}T00:00:00.000Z`);

@@ -23,6 +23,10 @@ export default async function CartPage({
   // Viewing a cart requires an account.
   const user = await getCurrentUser();
   if (!user) redirect(`/${typedLocale}/login`);
+  // Owner/staff don't shop — send them to the admin area.
+  if (user.role === "owner" || user.role === "staff") {
+    redirect(`/${typedLocale}/admin`);
+  }
 
   // All amounts computed server-side from current DB prices.
   const cart = await computeCart(user.id);
@@ -121,7 +125,19 @@ export default async function CartPage({
             </p>
           </div>
 
-          <p className="mt-4 text-sm text-ink/50">{dict.cart.checkoutSoon}</p>
+          {cart.lines.some((l) => l.requiresInstall) ? (
+            <div className="mt-5">
+              <p className="text-sm text-ink/60">{dict.cart.installNote}</p>
+              <Link
+                href={`/${typedLocale}/booking`}
+                className="mt-2 inline-block rounded-lg bg-ink px-5 py-3 text-sm font-semibold text-surface"
+              >
+                {dict.cart.bookInstall}
+              </Link>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-ink/50">{dict.cart.checkoutSoon}</p>
+          )}
         </>
       )}
     </div>

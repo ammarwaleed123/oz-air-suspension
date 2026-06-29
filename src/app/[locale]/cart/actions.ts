@@ -24,18 +24,19 @@ export async function addToCartAction(formData: FormData) {
   // regardless of any UI state.
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/login`);
+  // Owner/staff don't shop — ignore any add attempt.
+  if (user.role === "owner" || user.role === "staff") return;
 
   const kind = String(formData.get("kind") ?? "") as ProductKind;
   const productId = Number.parseInt(String(formData.get("productId") ?? ""), 10);
-  if (!KINDS.includes(kind) || !Number.isInteger(productId)) {
-    redirect(`/${locale}/cart`);
-  }
+  if (!KINDS.includes(kind) || !Number.isInteger(productId)) return;
 
   // addProductToCart re-validates the product against the DB before inserting.
   await addProductToCart(user.id, kind, productId);
 
-  revalidatePath(`/${locale}/cart`);
-  redirect(`/${locale}/cart`);
+  // Stay on the current page so the customer can keep adding; just refresh the
+  // cart data + the header count. The cart only opens when they click "Cart".
+  revalidatePath(`/${locale}`, "layout");
 }
 
 export async function removeFromCartAction(formData: FormData) {
