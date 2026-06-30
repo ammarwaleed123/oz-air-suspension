@@ -4,10 +4,31 @@
 // Requires a real-looking address: local@domain.tld with a TLD of 2+ chars.
 // Rejects values like "ammar@gma" (no dot/TLD) that the HTML email input and
 // zod's lenient .email() would otherwise allow.
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.([^\s@.]{2,})$/;
+
+// Allowlist of common top-level domains, so typos like ".cok"/".con" are caught
+// while real addresses pass. Covers generic + GCC/MENA + major country codes.
+// (Add more here if a legitimate address is ever rejected.)
+const COMMON_TLDS = new Set([
+  // generic
+  "com", "net", "org", "edu", "gov", "mil", "int", "info", "biz", "name",
+  "pro", "io", "co", "me", "app", "dev", "xyz", "online", "site", "store",
+  "shop", "tech", "cloud", "ai", "live", "email",
+  // MENA / GCC
+  "eg", "sa", "ae", "kw", "qa", "bh", "om", "jo", "lb", "ly", "sd", "ma",
+  "tn", "dz", "iq", "ye", "ps",
+  // other common country codes
+  "uk", "us", "ca", "de", "fr", "it", "es", "nl", "se", "no", "dk", "fi",
+  "ch", "be", "at", "ie", "pt", "gr", "pl", "ro", "cz", "au", "nz", "in",
+  "pk", "bd", "tr", "ru", "ua", "cn", "jp", "kr", "hk", "sg", "my", "id",
+  "ph", "th", "vn", "br", "mx", "ar", "cl", "za", "ng", "ke",
+]);
 
 export function isValidEmail(email: string): boolean {
-  return EMAIL_RE.test(email) && email.length <= 200;
+  if (email.length > 200) return false;
+  const m = EMAIL_RE.exec(email);
+  if (!m) return false;
+  return COMMON_TLDS.has(m[1].toLowerCase());
 }
 
 // Convert Arabic-Indic (٠-٩) and Extended Arabic-Indic / Persian (۰-۹) digits

@@ -179,6 +179,7 @@ export const rims = pgTable(
     boltPattern: text("bolt_pattern").notNull(), // e.g. "5x112"
     offsetMm: integer("offset_mm").notNull(), // ET, can be negative
     finish: text("finish").notNull(), // e.g. "Gloss Black"
+    brand: text("brand"), // e.g. "Vossen" (nullable for legacy rows)
     pricePiastres: integer("price_piastres").notNull(),
     imageUrl: text("image_url"),
     stock: integer("stock").notNull().default(0),
@@ -206,6 +207,9 @@ export const users = pgTable(
     email: text("email"),
     passwordHash: text("password_hash").notNull(),
     role: userRoleEnum("role").notNull().default("customer"),
+    // Deactivated accounts cannot sign in and lose access (used to disable
+    // staff without deleting the record).
+    isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -308,6 +312,9 @@ export const bookings = pgTable(
     depositPaidAt: timestamp("deposit_paid_at", { withTimezone: true }),
     balanceMethod: paymentMethodEnum("balance_method"),
     balancePaidAt: timestamp("balance_paid_at", { withTimezone: true }),
+    // Owner's "new booking" alert: a confirmed booking starts unseen; the owner
+    // marks it seen from the admin. Drives the in-admin notification badge.
+    seenByOwner: boolean("seen_by_owner").notNull().default(false),
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -382,6 +389,28 @@ export const cartItems = pgTable(
       .on(t.userId, t.rimId)
       .where(sql`${t.rimId} is not null`),
   ]
+);
+
+// ────────────────────────────────────────────────────────────────────
+// Builds gallery (owner-managed showcase). One hero photo per build.
+// ────────────────────────────────────────────────────────────────────
+
+export const builds = pgTable(
+  "builds",
+  {
+    id: serial("id").primaryKey(),
+    imageUrl: text("image_url").notNull(),
+    year: integer("year").notNull(),
+    titleEn: text("title_en").notNull(), // car make/model
+    titleAr: text("title_ar").notNull(),
+    // Manual ordering on the public gallery (lower = earlier).
+    sortOrder: integer("sort_order").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("builds_sort_idx").on(t.sortOrder)]
 );
 
 // ────────────────────────────────────────────────────────────────────
@@ -473,3 +502,4 @@ export type Booking = typeof bookings.$inferSelect;
 export type BookingDay = typeof bookingDays.$inferSelect;
 export type CartItem = typeof cartItems.$inferSelect;
 export type CarRequest = typeof carRequests.$inferSelect;
+export type Build = typeof builds.$inferSelect;

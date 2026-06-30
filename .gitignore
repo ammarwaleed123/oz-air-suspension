@@ -29,3 +29,6 @@ yarn-error.log*
 
 # drizzle
 /drizzle/meta
+
+# locally-uploaded images (dev only; production uses cloud storage)
+/public/uploads

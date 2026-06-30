@@ -22,7 +22,9 @@ export async function getCurrentUser(): Promise<User | null> {
   const id = Number(idStr);
   if (!Number.isInteger(id)) return null;
   const user = await db.query.users.findFirst({ where: eq(users.id, id) });
-  return user ?? null;
+  // A deactivated account loses access immediately, even with a valid session.
+  if (!user || !user.isActive) return null;
+  return user;
 }
 
 // Require any authenticated user; otherwise bounce to login.

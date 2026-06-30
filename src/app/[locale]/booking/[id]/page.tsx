@@ -7,6 +7,13 @@ import { getUserBooking } from "@/lib/booking";
 import { localizedName } from "@/lib/catalog";
 import { HoldCountdown } from "@/components/hold-countdown";
 import { OrderReceipt } from "@/components/order-receipt";
+import {
+  orderReference,
+  orderLookupUrl,
+  qrDataUrl,
+  whatsAppLink,
+  shopWhatsAppNumber,
+} from "@/lib/receipt";
 import { markDepositPaidAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -49,8 +56,14 @@ export default async function BookingConfirmPage({
   const subtotal = booking.order?.subtotalPiastres ?? 0;
   const items = booking.order?.items ?? [];
 
-  // ── Confirmed ──────────────────────────────────────────────────────
+  // ── Confirmed (on-site receipt) ────────────────────────────────────
   if (booking.status === "confirmed" || booking.status === "completed") {
+    const ref = orderReference(booking.orderId);
+    const qr = await qrDataUrl(orderLookupUrl(ref));
+    const shopNumber = shopWhatsAppNumber();
+    const waMessage = `${dict.booking.receipt} ${ref} — ${user.name}`;
+    const waHref = shopNumber ? whatsAppLink(shopNumber, waMessage) : null;
+
     return (
       <div className="mx-auto max-w-xl px-4 py-12">
         <h1 className="text-2xl font-bold text-green-700">
@@ -58,21 +71,32 @@ export default async function BookingConfirmPage({
         </h1>
         <p className="mt-2 text-ink/70">{dict.booking.confirmedMsg}</p>
 
-        <div className="mt-6 rounded-xl border border-black/10 bg-white p-5 text-sm">
-          <p className="mb-2 text-ink/50">
-            {dict.booking.orderRef}
-            {booking.orderId} · {dict.booking.statusConfirmed}
-          </p>
-          {carName && (
-            <p className="mb-2">
-              <span className="text-ink/50">{dict.booking.carLabel}: </span>
-              {carName}
+        {/* Receipt header: reference + QR */}
+        <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-white p-5">
+          <div className="text-sm">
+            <p className="font-mono text-lg font-bold" dir="ltr">
+              {ref}
             </p>
-          )}
-          <p>
-            <span className="text-ink/50">{dict.booking.yourSlot}: </span>
-            {slot}
-          </p>
+            <p className="mt-1 text-ink/60">{user.name}</p>
+            {carName && <p className="text-ink/60">{carName}</p>}
+            <p className="text-ink/60">{slot}</p>
+            <span className="mt-2 inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+              {dict.booking.statusConfirmed}
+            </span>
+          </div>
+          <div className="shrink-0 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={qr}
+              alt={ref}
+              width={110}
+              height={110}
+              className="rounded-md border border-black/10"
+            />
+            <p className="mt-1 max-w-[7rem] text-[10px] leading-tight text-ink/50">
+              {dict.booking.scanHint}
+            </p>
+          </div>
         </div>
 
         <div className="mt-4">
@@ -85,12 +109,24 @@ export default async function BookingConfirmPage({
           />
         </div>
 
-        <Link
-          href={`/${typedLocale}/account`}
-          className="mt-6 inline-block font-semibold text-accent underline"
-        >
-          {dict.nav.account}
-        </Link>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-[#25D366] px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              {dict.booking.whatsappCta}
+            </a>
+          )}
+          <Link
+            href={`/${typedLocale}/account`}
+            className="rounded-lg border border-black/15 px-4 py-2.5 text-sm font-semibold"
+          >
+            {dict.nav.account}
+          </Link>
+        </div>
       </div>
     );
   }

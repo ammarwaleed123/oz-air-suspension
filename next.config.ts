@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
+  experimental: {
+    serverActions: {
+      // Image uploads run through Server Actions; the default body limit is 1 MB,
+      // which silently fails for normal phone photos. Allow up to 8 MB (storage
+      // itself caps individual images at 6 MB — see src/lib/storage.ts).
+      bodySizeLimit: "8mb",
+    },
+  },
 };
 
 export default nextConfig;

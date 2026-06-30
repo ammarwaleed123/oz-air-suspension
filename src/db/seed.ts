@@ -123,6 +123,31 @@ async function main() {
     },
   ]);
 
+  // ── Sample builds gallery (placeholder images) ───────────────────
+  await db.insert(schema.builds).values([
+    {
+      imageUrl: "https://picsum.photos/seed/build-w205/800/1000",
+      year: 2023,
+      titleEn: "Mercedes C-Class W205",
+      titleAr: "مرسيدس C-Class W205",
+      sortOrder: 0,
+    },
+    {
+      imageUrl: "https://picsum.photos/seed/build-golf/800/1000",
+      year: 2022,
+      titleEn: "Volkswagen Golf GTI",
+      titleAr: "فولكس فاجن جولف GTI",
+      sortOrder: 1,
+    },
+    {
+      imageUrl: "https://picsum.photos/seed/build-bmw/800/1000",
+      year: 2024,
+      titleEn: "BMW 3-Series F30",
+      titleAr: "بي إم دبليو الفئة الثالثة F30",
+      sortOrder: 2,
+    },
+  ]);
+
   console.log("Seed complete.");
   await client.end();
 }

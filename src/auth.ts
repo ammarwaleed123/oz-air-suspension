@@ -39,6 +39,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: eq(users.email, email.toLowerCase()),
         });
         if (!user) return null;
+        // Deactivated accounts cannot sign in.
+        if (!user.isActive) return null;
 
         const ok = await verifyPassword(password, user.passwordHash);
         if (!ok) return null;

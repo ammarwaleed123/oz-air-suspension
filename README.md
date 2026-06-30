@@ -99,5 +99,14 @@ These MUST NOT be forgotten before going public:
       accounts have known passwords and must never reach production.
 - [ ] **Login brute-force / rate limiting** is NOT yet implemented. Add
       throttling / lockout on the credentials login in the step 6 hardening pass.
-- [ ] **Catalog caching** — revisit the `force-dynamic` choice on list pages
-      (see "Known decisions" above) once admin-driven cache invalidation exists.
+- [ ] **Catalog caching** — largely resolved: owner product/car edits now call
+      `revalidatePath` so the catalog refreshes on change. Still worth revisiting
+      the broad `force-dynamic` choice on list pages (see "Known decisions" above)
+      for a tighter caching strategy.
+- [ ] **Production QR URL** — receipt QR codes and `/admin/lookup` links are built
+      from `NEXT_PUBLIC_SITE_URL`. It defaults to `http://localhost:3000`; set it to
+      the real public domain in production or the printed QR codes point at localhost.
+- [ ] **Swap image storage to the cloud.** `src/lib/storage.ts` currently writes
+      uploaded images to local disk (`public/uploads/`, gitignored, dev only).
+      Replace `saveImage`/`deleteImage` with Vercel Blob or Cloudflare R2 before
+      launch — local disk does not persist on serverless hosts.
