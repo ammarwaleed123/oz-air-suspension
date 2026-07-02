@@ -8,6 +8,7 @@ import { builds } from "@/db/schema";
 import { getAllBuilds, getBuildById } from "@/db/queries";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { saveImage, deleteImage, UploadError } from "@/lib/storage";
+import { revalidateCatalog } from "@/lib/cache";
 import { isLocale, defaultLocale, type Locale } from "@/i18n/config";
 
 function readLocale(formData: FormData): Locale {
@@ -34,6 +35,7 @@ function backWithError(locale: Locale, code: string): never {
 
 // Revalidate in place (no redirect → no blank flash).
 function done(locale: Locale) {
+  revalidateCatalog();
   revalidatePath(`/${locale}/builds`);
 }
 

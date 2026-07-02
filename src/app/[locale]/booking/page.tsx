@@ -62,15 +62,17 @@ export default async function BookingPage({
   // Nothing that needs installing.
   if (installLines.length === 0) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-12">
-        <h1 className="text-2xl font-bold">{dict.booking.title}</h1>
-        <p className="mt-3 text-ink/60">{dict.booking.errNoInstall}</p>
-        <Link
-          href={`/${typedLocale}/air-kits`}
-          className="mt-4 inline-block font-semibold text-accent underline"
-        >
-          {dict.cart.browse}
-        </Link>
+      <div className="grow bg-ink text-surface">
+        <div className="mx-auto max-w-2xl px-4 py-14 sm:py-20">
+          <h1 className="display text-3xl uppercase sm:text-4xl">{dict.booking.title}</h1>
+          <p className="mt-3 text-surface/60">{dict.booking.errNoInstall}</p>
+          <Link
+            href={`/${typedLocale}/air-kits`}
+            className="mt-4 inline-block font-semibold text-accent underline"
+          >
+            {dict.cart.browse}
+          </Link>
+        </div>
       </div>
     );
   }
@@ -101,92 +103,95 @@ export default async function BookingPage({
   const errorKey = sp.error ? ERROR_KEYS[sp.error] : undefined;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-bold">{dict.booking.title}</h1>
+    <div className="grow bg-ink text-surface">
+      <div className="mx-auto max-w-2xl px-4 py-14 sm:py-20">
+        <p className="cat-label">{dict.nav.cart}</p>
+        <h1 className="display mt-2 text-3xl uppercase sm:text-4xl">{dict.booking.title}</h1>
 
-      {car && (
-        <p className="mt-1 text-ink/60">
-          {dict.booking.carLabel}: {localizedName(car, typedLocale)}
-        </p>
-      )}
+        {car && (
+          <p className="mt-2 text-surface/60">
+            {dict.booking.carLabel}: {localizedName(car, typedLocale)}
+          </p>
+        )}
 
-      {/* Deposit preview (server-computed). */}
-      <div className="mt-4 rounded-xl border border-black/10 bg-black/[0.02] p-4 text-sm">
-        <div className="flex justify-between py-0.5">
-          <span className="text-ink/60">{dict.booking.total}</span>
-          <span className="font-medium">
-            {formatPrice(cart.subtotalPiastres, typedLocale)}
-          </span>
-        </div>
-        <div className="flex justify-between py-0.5">
-          <span className="text-ink/60">{dict.booking.depositAmount}</span>
-          <span className="font-semibold text-accent">
-            {formatPrice(cart.depositPiastres, typedLocale)}
-          </span>
-        </div>
-        <p className="mt-2 text-xs text-ink/50">{dict.booking.twoDayNotice}</p>
-      </div>
-
-      {errorKey && (
-        <p
-          role="alert"
-          className="mt-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
-        >
-          {dict.booking[errorKey]}
-        </p>
-      )}
-
-      {multipleCars ? (
-        <p className="mt-6 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
-          {dict.booking.errMultipleCars}
-        </p>
-      ) : (
-        <form action={startBookingAction} className="mt-6 flex flex-col gap-4">
-          <input type="hidden" name="locale" value={typedLocale} />
-
-          {showGate && (
-            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">
-              <label className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  name="coiloversAlreadyInstalled"
-                  className="mt-1"
-                />
-                <span>{dict.booking.coiloverGateLabel}</span>
-              </label>
-              <p className="mt-2 text-xs text-amber-800">
-                {dict.booking.coiloverGateHelp}
-              </p>
-            </div>
-          )}
-
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-ink/70">{dict.booking.note}</span>
-            <textarea
-              name="note"
-              rows={2}
-              placeholder={dict.booking.notePlaceholder}
-              className="w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
-            />
-          </label>
-
-          <div>
-            <p className="mb-2 text-sm font-medium">
-              {dict.booking.selectStartDay}
-            </p>
-            <BookingCalendar
-              year={availability.year}
-              month0={availability.month0}
-              days={availability.days}
-              locale={typedLocale}
-              prevHref={prevHref}
-              nextHref={nextHref}
-              prevLabel={dict.booking.prevMonth}
-              nextLabel={dict.booking.nextMonth}
-            />
+        {/* Deposit preview (server-computed). */}
+        <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm">
+          <div className="flex justify-between py-0.5">
+            <span className="text-surface/60">{dict.booking.total}</span>
+            <span className="font-medium">
+              {formatPrice(cart.subtotalPiastres, typedLocale)}
+            </span>
           </div>
-        </form>
-      )}
+          <div className="flex justify-between py-0.5">
+            <span className="text-surface/60">{dict.booking.depositAmount}</span>
+            <span className="font-semibold text-accent">
+              {formatPrice(cart.depositPiastres, typedLocale)}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-surface/50">{dict.booking.twoDayNotice}</p>
+        </div>
+
+        {errorKey && (
+          <p
+            role="alert"
+            className="mt-4 rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+          >
+            {dict.booking[errorKey]}
+          </p>
+        )}
+
+        {multipleCars ? (
+          <p className="mt-6 rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            {dict.booking.errMultipleCars}
+          </p>
+        ) : (
+          <form action={startBookingAction} className="mt-6 flex flex-col gap-4">
+            <input type="hidden" name="locale" value={typedLocale} />
+
+            {showGate && (
+              <div className="rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-surface">
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    name="coiloversAlreadyInstalled"
+                    className="mt-1 accent-accent"
+                  />
+                  <span>{dict.booking.coiloverGateLabel}</span>
+                </label>
+                <p className="mt-2 text-xs text-amber-200/80">
+                  {dict.booking.coiloverGateHelp}
+                </p>
+              </div>
+            )}
+
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-surface/70">{dict.booking.note}</span>
+              <textarea
+                name="note"
+                rows={2}
+                placeholder={dict.booking.notePlaceholder}
+                className="w-full rounded-lg border border-white/15 bg-coal px-3 py-2 text-sm text-surface placeholder:text-surface/40"
+              />
+            </label>
+
+            <div>
+              <p className="mb-2 text-sm font-medium">
+                {dict.booking.selectStartDay}
+              </p>
+              <BookingCalendar
+                year={availability.year}
+                month0={availability.month0}
+                days={availability.days}
+                locale={typedLocale}
+                prevHref={prevHref}
+                nextHref={nextHref}
+                prevLabel={dict.booking.prevMonth}
+                nextLabel={dict.booking.nextMonth}
+              />
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

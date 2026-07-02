@@ -1,9 +1,12 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Saira+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Cairo:wght@400;600;700;800&display=swap");
 
 @theme {
-  --color-ink: #0b0b0c;
-  --color-surface: #f5f5f4;
-  --color-accent: #c9a227;
+  --color-ink: #0b0b0c; /* near-black — page/dark sections */
+  --color-surface: #f5f5f4; /* near-white — text on dark, light pages */
+  --color-coal: #161619; /* slightly elevated dark surface (cards/inputs) */
+  --color-accent: #e11119; /* brand red (matches the OZ logo) */
+  --font-display: "Saira Condensed", "Cairo", "Segoe UI", system-ui, sans-serif;
   --font-sans-ar: "Cairo", "Segoe UI", system-ui, sans-serif;
 }
 
@@ -16,11 +19,56 @@ html {
   color: var(--color-ink);
 }
 
-/* Arabic uses a slightly larger line-height for legibility. */
 html[lang="ar"] body {
+  font-family: var(--font-sans-ar);
   line-height: 1.85;
 }
 
 body {
   min-height: 100dvh;
+}
+
+/* ── Editorial display headline ─────────────────────────────────────
+   Latin: bold condensed italic (matches the mockup).
+   Arabic: upright Cairo bold — slanted/condensed Arabic reads poorly, so
+   we drop the italic and the negative tracking for RTL. */
+.display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+}
+html[lang="ar"] .display {
+  font-family: var(--font-sans-ar);
+  font-style: normal;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+/* ── Small red category label above headlines (e.g. "STEP 01") ─────── */
+.cat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+html[lang="ar"] .cat-label {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Same shape as .cat-label but white — for use ON the red accent chip
+   (e.g. the hero "October City · Egypt" tag), where red-on-red is invisible. */
+.loc-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+}
+html[lang="ar"] .loc-tag {
+  letter-spacing: 0;
+  text-transform: none;
 }

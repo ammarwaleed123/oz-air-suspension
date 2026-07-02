@@ -36,10 +36,10 @@ export default async function RequestsPage({
   return (
     <div>
       <h2 className="text-xl font-semibold">{r.title}</h2>
-      <p className="mt-1 text-sm text-ink/60">{r.intro}</p>
+      <p className="mt-1 text-sm text-surface/60">{r.intro}</p>
 
       {requests.length === 0 ? (
-        <p className="mt-6 text-ink/60">{r.none}</p>
+        <p className="mt-6 text-surface/60">{r.none}</p>
       ) : (
         <ul className="mt-6 space-y-3">
           {requests.map((req) => {
@@ -47,22 +47,22 @@ export default async function RequestsPage({
             return (
               <li
                 key={req.id}
-                className="rounded-xl border border-black/10 bg-white p-4"
+                className="rounded-xl border border-white/10 bg-coal p-4"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{req.carMakeModel}</p>
-                    <p className="text-sm text-ink/70">
+                    <p className="text-sm text-surface/70">
                       {req.contactName} ·{" "}
                       <span dir="ltr">{req.contactPhone}</span>
                       {req.year ? ` · ${req.year}` : ""}
                     </p>
                     {req.notes && (
-                      <p className="mt-1 text-sm text-ink/60">
+                      <p className="mt-1 text-sm text-surface/60">
                         {r.notes}: {req.notes}
                       </p>
                     )}
-                    <p className="mt-1 text-xs text-ink/40">
+                    <p className="mt-1 text-xs text-surface/40">
                       {r.date}: {formatDate(req.createdAt, typedLocale)}
                     </p>
                   </div>
@@ -70,8 +70,8 @@ export default async function RequestsPage({
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         handled
-                          ? "bg-green-100 text-green-800"
-                          : "bg-amber-100 text-amber-800"
+                          ? "bg-green-500/15 text-green-300"
+                          : "bg-amber-500/15 text-amber-300"
                       }`}
                     >
                       {handled ? r.handled : r.isNew}
@@ -86,7 +86,7 @@ export default async function RequestsPage({
                       />
                       <button
                         type="submit"
-                        className="rounded-md border border-black/15 px-3 py-1.5 text-xs"
+                        className="rounded-md border border-white/20 px-3 py-1.5 text-xs"
                       >
                         {handled ? r.markNew : r.markHandled}
                       </button>

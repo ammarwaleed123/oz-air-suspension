@@ -12,24 +12,39 @@ import {
   reorderBuildAction,
 } from "@/app/[locale]/builds/actions";
 
-const input =
+const inputLight =
   "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm";
+const inputDark =
+  "w-full rounded-lg border border-white/15 bg-coal px-3 py-2 text-sm text-surface placeholder:text-surface/40";
 
 // Owner-only management panel rendered beneath the public gallery. Uses a
-// native <details> for the "Add" form so no client JS is needed.
+// native <details> for the "Add" form so no client JS is needed. `dark` matches
+// the near-black site theme used on the restyled builds gallery.
 export function BuildsManager({
   builds,
   locale,
   dict,
   errorCode,
+  dark = false,
 }: {
   builds: Build[];
   locale: Locale;
   dict: Dictionary;
   errorCode?: string;
+  dark?: boolean;
 }) {
   const m = dict.manage;
   const b = dict.buildsAdmin;
+  const input = dark ? inputDark : inputLight;
+  const labelC = dark ? "text-surface/70" : "text-ink/70";
+  const subLabelC = dark ? "text-surface/60" : "text-ink/60";
+  const hintC = dark ? "text-surface/50" : "text-ink/50";
+  const saveBtn = dark
+    ? "rounded-lg border border-white/20 px-3 py-1.5 text-sm font-medium text-surface"
+    : "rounded-lg border border-black/15 px-3 py-1.5 text-sm font-medium";
+  const addBtn = dark
+    ? "rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white"
+    : "rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-surface";
   const errText = errorCode
     ? (m as Record<string, string>)[
         errorCode === "image"
@@ -41,50 +56,56 @@ export function BuildsManager({
     : null;
 
   return (
-    <section className="mt-16 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink/40">
+    <section
+      className={
+        dark
+          ? "mt-16 rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+          : "mt-16 rounded-2xl border border-black/10 bg-black/[0.02] p-5"
+      }
+    >
+      <p className={dark ? "cat-label mb-4" : "mb-3 text-xs font-semibold uppercase tracking-wide text-ink/40"}>
         {m.ownerTools}
       </p>
 
       {errText && (
         <p
           role="alert"
-          className="mt-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className={
+            dark
+              ? "mt-3 rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+              : "mt-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          }
         >
           {errText}
         </p>
       )}
 
       {/* Add build */}
-      <OwnerDisclosure label={m.addBuild}>
+      <OwnerDisclosure label={m.addBuild} dark={dark}>
         <form
           action={createBuildAction}
-          encType="multipart/form-data"
           className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2"
         >
           <input type="hidden" name="locale" value={locale} />
           <label className="flex flex-col gap-1 text-sm sm:col-span-2">
-            <span className="text-ink/70">{m.image}</span>
+            <span className={labelC}>{m.image}</span>
             <input type="file" name="image" accept="image/*" required className={input} />
-            <span className="text-xs text-ink/50">{m.imageHint}</span>
+            <span className={`text-xs ${hintC}`}>{m.imageHint}</span>
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-ink/70">{b.yearLabel}</span>
+            <span className={labelC}>{b.yearLabel}</span>
             <input type="number" name="year" required min={1950} className={input} />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-ink/70">{m.titleEn}</span>
+            <span className={labelC}>{m.titleEn}</span>
             <input type="text" name="titleEn" required dir="ltr" className={input} />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-ink/70">{m.titleAr}</span>
+            <span className={labelC}>{m.titleAr}</span>
             <input type="text" name="titleAr" required dir="rtl" className={input} />
           </label>
           <div className="flex items-end">
-            <button
-              type="submit"
-              className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-surface"
-            >
+            <button type="submit" className={addBtn}>
               {m.add}
             </button>
           </div>
@@ -97,53 +118,60 @@ export function BuildsManager({
           {builds.map((bd, i) => (
             <li
               key={bd.id}
-              className="rounded-xl border border-black/10 bg-white p-4"
+              className={
+                dark
+                  ? "rounded-xl border border-white/10 bg-coal p-4"
+                  : "rounded-xl border border-black/10 bg-white p-4"
+              }
             >
               <div className="flex gap-4">
-                <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-black/5">
+                <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-black/20">
                   <Image src={bd.imageUrl} alt={bd.titleEn} fill sizes="80px" className="object-cover" />
                 </div>
                 <form
                   action={updateBuildAction}
-                  encType="multipart/form-data"
                   className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2"
                 >
                   <input type="hidden" name="locale" value={locale} />
                   <input type="hidden" name="id" value={bd.id} />
                   <label className="flex flex-col gap-1 text-xs">
-                    <span className="text-ink/60">{b.yearLabel}</span>
+                    <span className={subLabelC}>{b.yearLabel}</span>
                     <input type="number" name="year" defaultValue={bd.year} className={input} />
                   </label>
                   <label className="flex flex-col gap-1 text-xs">
-                    <span className="text-ink/60">{m.titleEn}</span>
+                    <span className={subLabelC}>{m.titleEn}</span>
                     <input type="text" name="titleEn" defaultValue={bd.titleEn} dir="ltr" className={input} />
                   </label>
                   <label className="flex flex-col gap-1 text-xs">
-                    <span className="text-ink/60">{m.titleAr}</span>
+                    <span className={subLabelC}>{m.titleAr}</span>
                     <input type="text" name="titleAr" defaultValue={bd.titleAr} dir="rtl" className={input} />
                   </label>
                   <label className="flex flex-col gap-1 text-xs">
-                    <span className="text-ink/60">{m.image} ({m.optional})</span>
+                    <span className={subLabelC}>{m.image} ({m.optional})</span>
                     <input type="file" name="image" accept="image/*" className={input} />
                   </label>
                   <div className="sm:col-span-2">
-                    <button type="submit" className="rounded-lg border border-black/15 px-3 py-1.5 text-sm font-medium">
+                    <button type="submit" className={saveBtn}>
                       {b.save}
                     </button>
                   </div>
                 </form>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-black/10 pt-3">
-                <RowButton action={reorderBuildAction} locale={locale} id={bd.id} extra={{ dir: "up" }} label={b.moveUp} disabled={i === 0} />
-                <RowButton action={reorderBuildAction} locale={locale} id={bd.id} extra={{ dir: "down" }} label={b.moveDown} disabled={i === builds.length - 1} />
-                <RowButton action={toggleBuildAction} locale={locale} id={bd.id} label={bd.isActive ? b.visible : b.hidden} />
+              <div className={`mt-3 flex flex-wrap items-center gap-2 border-t pt-3 ${dark ? "border-white/10" : "border-black/10"}`}>
+                <RowButton action={reorderBuildAction} locale={locale} id={bd.id} extra={{ dir: "up" }} label={b.moveUp} disabled={i === 0} dark={dark} />
+                <RowButton action={reorderBuildAction} locale={locale} id={bd.id} extra={{ dir: "down" }} label={b.moveDown} disabled={i === builds.length - 1} dark={dark} />
+                <RowButton action={toggleBuildAction} locale={locale} id={bd.id} label={bd.isActive ? b.visible : b.hidden} dark={dark} />
                 <form action={deleteBuildAction}>
                   <input type="hidden" name="locale" value={locale} />
                   <input type="hidden" name="id" value={bd.id} />
                   <ConfirmButton
                     confirmText={m.confirmDelete}
-                    className="rounded-lg border border-red-300 px-3 py-1.5 text-xs text-red-700"
+                    className={
+                      dark
+                        ? "rounded-lg border border-red-400/60 px-3 py-1.5 text-xs text-red-300"
+                        : "rounded-lg border border-red-300 px-3 py-1.5 text-xs text-red-700"
+                    }
                   >
                     {b.delete}
                   </ConfirmButton>
@@ -165,6 +193,7 @@ function RowButton({
   extra,
   danger,
   disabled,
+  dark = false,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   locale: Locale;
@@ -173,7 +202,15 @@ function RowButton({
   extra?: Record<string, string>;
   danger?: boolean;
   disabled?: boolean;
+  dark?: boolean;
 }) {
+  const cls = danger
+    ? dark
+      ? "rounded-lg border border-red-400/60 px-3 py-1.5 text-xs text-red-300 disabled:opacity-40"
+      : "rounded-lg border border-red-300 px-3 py-1.5 text-xs text-red-700 disabled:opacity-40"
+    : dark
+      ? "rounded-lg border border-white/20 px-3 py-1.5 text-xs text-surface disabled:opacity-40"
+      : "rounded-lg border border-black/15 px-3 py-1.5 text-xs disabled:opacity-40";
   return (
     <form action={action}>
       <input type="hidden" name="locale" value={locale} />
@@ -182,15 +219,7 @@ function RowButton({
         Object.entries(extra).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
-      <button
-        type="submit"
-        disabled={disabled}
-        className={
-          danger
-            ? "rounded-lg border border-red-300 px-3 py-1.5 text-xs text-red-700 disabled:opacity-40"
-            : "rounded-lg border border-black/15 px-3 py-1.5 text-xs disabled:opacity-40"
-        }
-      >
+      <button type="submit" disabled={disabled} className={cls}>
         {label}
       </button>
     </form>

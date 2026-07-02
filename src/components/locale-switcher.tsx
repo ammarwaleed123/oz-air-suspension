@@ -17,25 +17,18 @@ export function LocaleSwitcher({ current }: { current: Locale }) {
     router.refresh();
   }
 
+  // Exactly two locales — render a single pill button that toggles to the
+  // other one and is labelled with that target language.
+  const target: Locale = current === "ar" ? "en" : "ar";
+
   return (
-    <div className="flex items-center gap-1 text-sm">
-      {locales.map((l, i) => (
-        <span key={l} className="flex items-center gap-1">
-          {i > 0 && <span className="text-ink/30">/</span>}
-          <button
-            type="button"
-            onClick={() => switchTo(l)}
-            aria-current={l === current ? "true" : undefined}
-            className={
-              l === current
-                ? "font-semibold text-ink"
-                : "text-ink/60 hover:text-ink"
-            }
-          >
-            {localeLabel[l]}
-          </button>
-        </span>
-      ))}
-    </div>
+    <button
+      type="button"
+      onClick={() => switchTo(target)}
+      aria-label={localeLabel[target]}
+      className="rounded-md border border-white/25 px-3 py-1.5 text-sm font-medium text-surface transition-colors hover:border-white/60 hover:bg-white/5"
+    >
+      {localeLabel[target]}
+    </button>
   );
 }

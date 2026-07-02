@@ -30,29 +30,29 @@ export default async function StaffPage({
   return (
     <div>
       <h2 className="text-xl font-semibold">{s.title}</h2>
-      <p className="mt-1 text-sm text-ink/60">{s.intro}</p>
-      <p className="mt-1 text-xs text-ink/40">{s.selfNote}</p>
+      <p className="mt-1 text-sm text-surface/60">{s.intro}</p>
+      <p className="mt-1 text-xs text-surface/40">{s.selfNote}</p>
 
       <div className="mt-5">
-        <OwnerDisclosure label={s.addStaff}>
+        <OwnerDisclosure label={s.addStaff} dark>
           <StaffForm locale={typedLocale} dict={dict} />
         </OwnerDisclosure>
       </div>
 
       {staff.length === 0 ? (
-        <p className="mt-6 text-ink/60">{s.none}</p>
+        <p className="mt-6 text-surface/60">{s.none}</p>
       ) : (
-        <ul className="mt-6 divide-y divide-black/10 rounded-xl border border-black/10 bg-white">
+        <ul className="mt-6 divide-y divide-white/10 rounded-xl border border-white/10 bg-coal">
           {staff.map((m) => (
             <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div>
                 <p className="font-medium">{m.name}</p>
-                <p className="text-sm text-ink/60" dir="ltr">{m.email} · {m.phone}</p>
+                <p className="text-sm text-surface/60" dir="ltr">{m.email} · {m.phone}</p>
               </div>
               <div className="flex items-center gap-2">
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    m.isActive ? "bg-green-100 text-green-800" : "bg-black/10 text-ink/60"
+                    m.isActive ? "bg-green-500/15 text-green-300" : "bg-white/10 text-surface/60"
                   }`}
                 >
                   {m.isActive ? s.active : s.inactive}
@@ -61,14 +61,14 @@ export default async function StaffPage({
                   <input type="hidden" name="locale" value={typedLocale} />
                   <input type="hidden" name="id" value={m.id} />
                   <input type="hidden" name="active" value={m.isActive ? "false" : "true"} />
-                  <button type="submit" className="rounded-md border border-black/15 px-3 py-1.5 text-xs">
+                  <button type="submit" className="rounded-md border border-white/20 px-3 py-1.5 text-xs">
                     {m.isActive ? s.deactivate : s.activate}
                   </button>
                 </form>
                 <form action={removeStaffAction}>
                   <input type="hidden" name="locale" value={typedLocale} />
                   <input type="hidden" name="id" value={m.id} />
-                  <ConfirmButton className="rounded-md border border-red-300 px-3 py-1.5 text-xs text-red-700">
+                  <ConfirmButton className="rounded-md border border-red-400/60 px-3 py-1.5 text-xs text-red-300">
                     {s.remove}
                   </ConfirmButton>
                 </form>

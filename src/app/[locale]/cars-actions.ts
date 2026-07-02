@@ -5,9 +5,15 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { cars } from "@/db/schema";
-import { getAllCarSlugs, getCarById, getCarAttachments } from "@/db/queries";
+import {
+  getAllCarSlugs,
+  getCarById,
+  getCarAttachments,
+  getBrandById,
+} from "@/db/queries";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { saveImage, deleteImage, UploadError } from "@/lib/storage";
+import { revalidateCatalog } from "@/lib/cache";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import { isLocale, defaultLocale, type Locale } from "@/i18n/config";
 
@@ -29,10 +35,8 @@ async function ensureOwner(locale: Locale) {
 
 function readCarFields(formData: FormData) {
   return {
-    make: String(formData.get("make") ?? "").trim(),
+    brandId: Number.parseInt(String(formData.get("brandId") ?? ""), 10),
     model: String(formData.get("model") ?? "").trim(),
-    nameEn: String(formData.get("nameEn") ?? "").trim(),
-    nameAr: String(formData.get("nameAr") ?? "").trim(),
     yearStart:
       Number.parseInt(String(formData.get("yearStart") ?? ""), 10) || null,
     yearEnd: Number.parseInt(String(formData.get("yearEnd") ?? ""), 10) || null,
@@ -42,6 +46,7 @@ function readCarFields(formData: FormData) {
 // Revalidate in place (no redirect → no blank flash). `back` is the landing
 // page the owner is managing cars from.
 function finish(back: string) {
+  revalidateCatalog();
   revalidatePath(back);
 }
 
@@ -50,9 +55,11 @@ export async function createCarAction(formData: FormData) {
   await ensureOwner(locale);
 
   const f = readCarFields(formData);
-  if (!f.make || !f.model || !f.nameEn || !f.nameAr) {
+  if (!Number.isInteger(f.brandId) || !f.model) {
     redirect(`${back}?error=generic`);
   }
+  const brand = await getBrandById(f.brandId);
+  if (!brand) redirect(`${back}?error=generic`);
 
   let imageUrl: string | null = null;
   const file = formData.get("image");
@@ -64,9 +71,21 @@ export async function createCarAction(formData: FormData) {
     }
   }
 
+  // Display names are derived from brand + model (kept in sync on every write).
+  const nameEn = `${brand!.nameEn} ${f.model}`;
+  const nameAr = `${brand!.nameAr} ${f.model}`;
   const taken = new Set(await getAllCarSlugs());
-  const slug = uniqueSlug(slugify(`${f.make} ${f.model}`), taken);
-  await db.insert(cars).values({ slug, ...f, imageUrl });
+  const slug = uniqueSlug(slugify(`${brand!.nameEn} ${f.model}`), taken);
+  await db.insert(cars).values({
+    slug,
+    brandId: f.brandId,
+    model: f.model,
+    nameEn,
+    nameAr,
+    yearStart: f.yearStart,
+    yearEnd: f.yearEnd,
+    imageUrl,
+  });
   finish(back);
 }
 
@@ -76,25 +95,38 @@ export async function updateCarAction(formData: FormData) {
 
   const id = Number.parseInt(String(formData.get("id") ?? ""), 10);
   const f = readCarFields(formData);
-  if (!Number.isInteger(id) || !f.make || !f.model || !f.nameEn || !f.nameAr) {
+  if (!Number.isInteger(id) || !Number.isInteger(f.brandId) || !f.model) {
     redirect(`${back}?error=generic`);
   }
   const current = await getCarById(id);
   if (!current) redirect(`${back}?error=generic`);
+  const brand = await getBrandById(f.brandId);
+  if (!brand) redirect(`${back}?error=generic`);
 
   // Keep the existing slug so detail URLs don't break.
-  let imageUrl = current.imageUrl;
+  let imageUrl = current!.imageUrl;
   const file = formData.get("image");
   if (file instanceof File && file.size > 0) {
     try {
       imageUrl = await saveImage(file, "cars");
-      if (current.imageUrl) await deleteImage(current.imageUrl);
+      if (current!.imageUrl) await deleteImage(current!.imageUrl);
     } catch (e) {
       redirect(`${back}?error=${e instanceof UploadError ? "image" : "generic"}`);
     }
   }
 
-  await db.update(cars).set({ ...f, imageUrl }).where(eq(cars.id, id));
+  await db
+    .update(cars)
+    .set({
+      brandId: f.brandId,
+      model: f.model,
+      nameEn: `${brand!.nameEn} ${f.model}`,
+      nameAr: `${brand!.nameAr} ${f.model}`,
+      yearStart: f.yearStart,
+      yearEnd: f.yearEnd,
+      imageUrl,
+    })
+    .where(eq(cars.id, id));
   finish(back);
 }
 

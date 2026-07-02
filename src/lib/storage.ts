@@ -2,20 +2,25 @@ import "server-only";
 import { writeFile, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { put, del } from "@vercel/blob";
 
 // ─────────────────────────────────────────────────────────────────────
-// Image storage.
+// Image storage — two backends behind ONE interface (saveImage/deleteImage).
 //
-// DEV (this implementation): saves uploads to `public/uploads/builds/` and
-// returns a same-origin URL like `/uploads/builds/<uuid>.jpg`. Works with
-// `next dev` and `next start` on a single persistent server.
+// • Vercel Blob (production): used automatically when BLOB_READ_WRITE_TOKEN is
+//   set. Vercel injects this env var once you create a Blob store, so deployed
+//   uploads persist on a CDN (the local filesystem there is ephemeral/read-only).
+//   You can also set the token locally to test Blob in dev.
 //
-// PRODUCTION: a serverless host (e.g. Vercel) has an ephemeral, read-only
-// filesystem, so swap THIS MODULE for cloud object storage + CDN — Vercel Blob
-// (simplest with Next.js) or Cloudflare R2 (cheapest, S3-compatible). The rest
-// of the app only ever stores/reads a URL string, so the change is isolated to
-// this file (and adding the storage host to next.config images.remotePatterns).
+// • Local disk (development default): saves to public/uploads/<subdir>/ and
+//   returns a same-origin URL. Used when no Blob token is present, so `next dev`
+//   works with zero setup.
+//
+// The rest of the app only ever stores/reads a URL string, so nothing else
+// changes regardless of backend.
 // ─────────────────────────────────────────────────────────────────────
+
+const USE_BLOB = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 
 const UPLOADS_ROOT = path.join(process.cwd(), "public", "uploads");
 const PUBLIC_ROOT = "/uploads";
@@ -52,23 +57,48 @@ export async function saveImage(
   if (!ext) throw new UploadError("invalid_type");
   if (file.size > MAX_BYTES) throw new UploadError("too_large");
 
-  const dir = path.join(UPLOADS_ROOT, subdir);
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await mkdir(dir, { recursive: true });
   const filename = `${randomUUID()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  if (USE_BLOB) {
+    // Public CDN-backed blob. `addRandomSuffix:false` — our UUID is already unique.
+    const { url } = await put(`${subdir}/${filename}`, buffer, {
+      access: "public",
+      contentType: file.type,
+      addRandomSuffix: false,
+    });
+    return url;
+  }
+
+  const dir = path.join(UPLOADS_ROOT, subdir);
+  await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, filename), buffer);
   return `${PUBLIC_ROOT}/${subdir}/${filename}`;
 }
 
-// Best-effort delete of a locally-stored image (ignores remote URLs, e.g.
-// placeholder picsum images, and missing files).
+// Best-effort delete. Handles both backends and ignores foreign URLs (e.g.
+// placeholder picsum images) and already-missing files.
 export async function deleteImage(url: string): Promise<void> {
-  if (!url.startsWith(`${PUBLIC_ROOT}/`)) return;
-  const rel = url.slice(`${PUBLIC_ROOT}/`.length);
-  if (!rel || rel.includes("..")) return;
-  try {
-    await unlink(path.join(UPLOADS_ROOT, rel));
-  } catch {
-    // already gone — fine
+  if (!url) return;
+
+  // Vercel Blob URL (absolute, on the blob storage host).
+  if (url.includes(".public.blob.vercel-storage.com")) {
+    try {
+      await del(url);
+    } catch {
+      // already gone / not ours — fine
+    }
+    return;
+  }
+
+  // Local disk URL.
+  if (url.startsWith(`${PUBLIC_ROOT}/`)) {
+    const rel = url.slice(`${PUBLIC_ROOT}/`.length);
+    if (!rel || rel.includes("..")) return;
+    try {
+      await unlink(path.join(UPLOADS_ROOT, rel));
+    } catch {
+      // already gone — fine
+    }
   }
 }

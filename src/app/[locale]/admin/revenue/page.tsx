@@ -27,14 +27,14 @@ export default async function RevenuePage({
     <div>
       <h2 className="text-xl font-semibold">{dict.admin.revenueTitle}</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-black/10 bg-white p-5">
-          <p className="text-sm text-ink/50">{dict.admin.revenueTotal}</p>
+        <div className="rounded-xl border border-white/10 bg-coal p-5">
+          <p className="text-sm text-surface/50">{dict.admin.revenueTotal}</p>
           <p className="mt-1 text-2xl font-bold text-accent">
             {formatPrice(revenue.totalPiastres, typedLocale)}
           </p>
         </div>
-        <div className="rounded-xl border border-black/10 bg-white p-5">
-          <p className="text-sm text-ink/50">{dict.admin.paidOrders}</p>
+        <div className="rounded-xl border border-white/10 bg-coal p-5">
+          <p className="text-sm text-surface/50">{dict.admin.paidOrders}</p>
           <p className="mt-1 text-2xl font-bold">{revenue.paidOrders}</p>
         </div>
       </div>

@@ -54,29 +54,29 @@ export default async function LookupPage({
           defaultValue={ref}
           placeholder={dict.lookup.prompt}
           dir="ltr"
-          className="w-full max-w-xs rounded-lg border border-black/15 bg-white px-3 py-2 text-sm"
+          className="w-full max-w-xs rounded-lg border border-white/20 bg-coal px-3 py-2 text-sm text-surface placeholder:text-surface/40"
         />
         <button
           type="submit"
-          className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-surface"
+          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-surface"
         >
           {dict.lookup.search}
         </button>
       </form>
 
       {ref && !booking && (
-        <p className="mt-6 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p className="mt-6 rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm text-red-200">
           {dict.lookup.notFound}
         </p>
       )}
 
       {booking && (
-        <div className="mt-6 rounded-xl border border-black/10 bg-white p-5">
+        <div className="mt-6 rounded-xl border border-white/10 bg-coal p-5">
           <div className="flex items-center justify-between">
             <span className="font-mono text-lg font-bold" dir="ltr">
               {orderReference(booking.orderId)}
             </span>
-            <span className="rounded-full bg-black/[0.06] px-3 py-1 text-xs font-medium">
+            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
               {booking.status === "confirmed"
                 ? dict.booking.statusConfirmed
                 : booking.status === "completed"
@@ -90,15 +90,15 @@ export default async function LookupPage({
           </div>
 
           <dl className="mt-4 grid grid-cols-2 gap-y-1 text-sm">
-            <dt className="text-ink/50">{dict.schedule.customer}</dt>
+            <dt className="text-surface/50">{dict.schedule.customer}</dt>
             <dd>{booking.user?.name ?? "—"}</dd>
-            <dt className="text-ink/50">{dict.schedule.phone}</dt>
+            <dt className="text-surface/50">{dict.schedule.phone}</dt>
             <dd dir="ltr">{booking.user?.phone ?? "—"}</dd>
-            <dt className="text-ink/50">{dict.schedule.car}</dt>
+            <dt className="text-surface/50">{dict.schedule.car}</dt>
             <dd>
               {booking.car ? localizedName(booking.car, typedLocale) : "—"}
             </dd>
-            <dt className="text-ink/50">{dict.schedule.installing}</dt>
+            <dt className="text-surface/50">{dict.schedule.installing}</dt>
             <dd>
               {hasAir && hasCoil
                 ? dict.schedule.installBoth
@@ -106,16 +106,16 @@ export default async function LookupPage({
                   ? dict.schedule.installAir
                   : dict.schedule.installCoilovers}
             </dd>
-            <dt className="text-ink/50">{dict.booking.yourSlot}</dt>
+            <dt className="text-surface/50">{dict.booking.yourSlot}</dt>
             <dd>{formatSlot(booking.startDate, booking.endDate, typedLocale)}</dd>
-            <dt className="text-ink/50">{dict.schedule.deposit}</dt>
+            <dt className="text-surface/50">{dict.schedule.deposit}</dt>
             <dd>{formatPrice(booking.depositPiastres, typedLocale)}</dd>
-            <dt className="text-ink/50">{dict.schedule.balance}</dt>
+            <dt className="text-surface/50">{dict.schedule.balance}</dt>
             <dd>{formatPrice(balance, typedLocale)}</dd>
           </dl>
 
           {booking.coiloversAlreadyInstalled && (
-            <p className="mt-3 rounded bg-amber-50 px-2 py-1 text-xs text-amber-800">
+            <p className="mt-3 rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-200">
               {dict.schedule.coiloverStatedFlag}
             </p>
           )}

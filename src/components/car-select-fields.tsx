@@ -11,15 +11,19 @@ export function CarSelect({
   locale,
   dict,
   inputClass,
+  dark = false,
 }: {
   cars: CarOption[];
   locale: Locale;
   dict: Dictionary;
   inputClass: string;
+  dark?: boolean;
 }) {
   return (
     <label className="flex flex-col gap-1 text-sm">
-      <span className="text-ink/70">{dict.manage.car}</span>
+      <span className={dark ? "text-surface/70" : "text-ink/70"}>
+        {dict.manage.car}
+      </span>
       <select name="carId" required defaultValue="" className={inputClass}>
         <option value="" disabled>
           {dict.manage.chooseCar}

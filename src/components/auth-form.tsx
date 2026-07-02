@@ -14,9 +14,9 @@ type State = {
 type Action = (prev: State, formData: FormData) => Promise<State>;
 
 const inputClass =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm focus:border-accent focus:outline-none";
+  "w-full rounded-lg border border-white/15 bg-coal px-3 py-2 text-sm text-surface placeholder:text-surface/40 focus:border-accent focus:outline-none";
 const inputErrorClass =
-  "w-full rounded-lg border border-red-400 bg-white px-3 py-2 text-sm focus:outline-none";
+  "w-full rounded-lg border border-red-400 bg-coal px-3 py-2 text-sm text-surface placeholder:text-surface/40 focus:outline-none";
 
 // Shared client form for both signup and login. `mode` switches the fields and
 // links; the server action handles validation + auth and redirects on success.
@@ -54,22 +54,24 @@ export function AuthForm({
   const FieldMsg = ({ field }: { field: FieldKey }) => {
     const msg = fieldError(field);
     return msg ? (
-      <span role="alert" className="text-xs text-red-700">
+      <span role="alert" className="text-xs text-red-300">
         {msg}
       </span>
     ) : null;
   };
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <h1 className="text-2xl font-bold">
-        {isSignup ? dict.auth.signupTitle : dict.auth.loginTitle}
-      </h1>
+    <div className="grow bg-ink text-surface">
+      <div className="mx-auto max-w-md px-4 py-14 sm:py-20">
+        <p className="cat-label">{dict.nav.account}</p>
+        <h1 className="display mt-2 text-4xl uppercase sm:text-5xl">
+          {isSignup ? dict.auth.signupTitle : dict.auth.loginTitle}
+        </h1>
 
       {errorText && (
         <p
           role="alert"
-          className="mt-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className="mt-6 rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm text-red-200"
         >
           {errorText}
         </p>
@@ -82,7 +84,7 @@ export function AuthForm({
 
         {isSignup && (
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-ink/70">{dict.auth.name}</span>
+            <span className="text-surface/70">{dict.auth.name}</span>
             <input
               name="name"
               type="text"
@@ -97,7 +99,7 @@ export function AuthForm({
         )}
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-ink/70">{dict.auth.email}</span>
+          <span className="text-surface/70">{dict.auth.email}</span>
           <input
             name="email"
             type="email"
@@ -114,7 +116,7 @@ export function AuthForm({
 
         {isSignup && (
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-ink/70">{dict.auth.phone}</span>
+            <span className="text-surface/70">{dict.auth.phone}</span>
             <input
               name="phone"
               type="tel"
@@ -130,13 +132,13 @@ export function AuthForm({
             {fieldError("phone") ? (
               <FieldMsg field="phone" />
             ) : (
-              <span className="text-xs text-ink/50">{dict.auth.phoneHint}</span>
+              <span className="text-xs text-surface/50">{dict.auth.phoneHint}</span>
             )}
           </label>
         )}
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-ink/70">{dict.auth.password}</span>
+          <span className="text-surface/70">{dict.auth.password}</span>
           <input
             name="password"
             type="password"
@@ -149,7 +151,7 @@ export function AuthForm({
             <FieldMsg field="password" />
           ) : (
             isSignup && (
-              <span className="text-xs text-ink/50">
+              <span className="text-xs text-surface/50">
                 {dict.auth.passwordHint}
               </span>
             )
@@ -159,13 +161,13 @@ export function AuthForm({
         <button
           type="submit"
           disabled={pending}
-          className="mt-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-surface disabled:opacity-60"
+          className="mt-2 rounded-md bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {isSignup ? dict.auth.signupCta : dict.auth.loginCta}
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-ink/60">
+      <p className="mt-6 text-sm text-surface/60">
         {isSignup ? dict.auth.haveAccount : dict.auth.noAccount}{" "}
         <Link
           href={`/${locale}/${isSignup ? "login" : "signup"}`}
@@ -174,6 +176,7 @@ export function AuthForm({
           {isSignup ? dict.auth.toLogin : dict.auth.toSignup}
         </Link>
       </p>
+      </div>
     </div>
   );
 }

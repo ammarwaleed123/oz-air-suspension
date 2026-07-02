@@ -8,8 +8,10 @@ import {
   type StaffState,
 } from "@/app/[locale]/admin/staff/actions";
 
-const input = "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm";
-const inputErr = "w-full rounded-lg border border-red-400 bg-white px-3 py-2 text-sm";
+const input =
+  "w-full rounded-lg border border-white/15 bg-coal px-3 py-2 text-sm text-surface placeholder:text-surface/40";
+const inputErr =
+  "w-full rounded-lg border border-red-400 bg-coal px-3 py-2 text-sm text-surface placeholder:text-surface/40";
 
 type FieldKey = "name" | "email" | "phone" | "password";
 
@@ -38,7 +40,7 @@ export function StaffForm({
   const Msg = ({ field }: { field: FieldKey }) => {
     const msg = fieldMsg(field);
     return msg ? (
-      <span role="alert" className="text-xs text-red-700">
+      <span role="alert" className="text-xs text-red-300">
         {msg}
       </span>
     ) : null;
@@ -49,18 +51,18 @@ export function StaffForm({
       <input type="hidden" name="locale" value={locale} />
 
       {state.ok && (
-        <p className="sm:col-span-2 rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-800">
+        <p className="sm:col-span-2 rounded-lg border border-green-400/50 bg-green-500/10 px-3 py-2 text-sm text-green-300">
           ✓ {s.created}
         </p>
       )}
       {state.error && (
-        <p role="alert" className="sm:col-span-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p role="alert" className="sm:col-span-2 rounded-lg border border-red-400/50 bg-red-500/10 px-3 py-2 text-sm text-red-200">
           {auth.genericError}
         </p>
       )}
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-ink/70">{s.name}</span>
+        <span className="text-surface/70">{s.name}</span>
         <input name="name" required defaultValue={v?.name ?? ""}
           aria-invalid={Boolean(fieldMsg("name"))}
           className={fieldMsg("name") ? inputErr : input} />
@@ -68,7 +70,7 @@ export function StaffForm({
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-ink/70">{s.email}</span>
+        <span className="text-surface/70">{s.email}</span>
         <input name="email" type="email" dir="ltr" required defaultValue={v?.email ?? ""}
           placeholder="name@gmail.com"
           aria-invalid={Boolean(fieldMsg("email"))}
@@ -77,7 +79,7 @@ export function StaffForm({
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-ink/70">{s.phone}</span>
+        <span className="text-surface/70">{s.phone}</span>
         <input name="phone" type="tel" dir="ltr" required defaultValue={v?.phone ?? ""}
           placeholder="01XXXXXXXXX"
           aria-invalid={Boolean(fieldMsg("phone"))}
@@ -86,7 +88,7 @@ export function StaffForm({
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-ink/70">{s.password}</span>
+        <span className="text-surface/70">{s.password}</span>
         <input name="password" type="password" required minLength={8} autoComplete="new-password"
           aria-invalid={Boolean(fieldMsg("password"))}
           className={fieldMsg("password") ? inputErr : input} />
@@ -95,7 +97,7 @@ export function StaffForm({
 
       <div className="sm:col-span-2">
         <button type="submit" disabled={pending}
-          className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-surface disabled:opacity-60">
+          className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
           {s.create}
         </button>
       </div>

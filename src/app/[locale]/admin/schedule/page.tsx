@@ -64,7 +64,7 @@ export default async function SchedulePage({
       <div className="mt-4 flex items-center justify-between gap-3">
         <Link
           href={`${base}?day=${addDays(day, -1)}`}
-          className="rounded-lg border border-black/15 px-3 py-1.5 text-sm"
+          className="rounded-lg border border-white/20 px-3 py-1.5 text-sm"
         >
           ‹ {dict.schedule.prevDay}
         </Link>
@@ -72,21 +72,21 @@ export default async function SchedulePage({
           <span className="font-semibold">{formatDay(day, typedLocale)}</span>
           <Link
             href={base}
-            className="rounded-lg border border-black/15 px-2 py-1 text-xs text-ink/60"
+            className="rounded-lg border border-white/20 px-2 py-1 text-xs text-surface/60"
           >
             {dict.schedule.today}
           </Link>
         </div>
         <Link
           href={`${base}?day=${addDays(day, 1)}`}
-          className="rounded-lg border border-black/15 px-3 py-1.5 text-sm"
+          className="rounded-lg border border-white/20 px-3 py-1.5 text-sm"
         >
           {dict.schedule.nextDay} ›
         </Link>
       </div>
 
       {entries.length === 0 ? (
-        <p className="mt-8 text-ink/60">{dict.schedule.noBookings}</p>
+        <p className="mt-8 text-surface/60">{dict.schedule.noBookings}</p>
       ) : (
         <ul className="mt-6 space-y-4">
           {entries.map((e) => {
@@ -101,40 +101,40 @@ export default async function SchedulePage({
             return (
               <li
                 key={e.bookingId}
-                className="rounded-xl border border-black/10 bg-white p-4"
+                className="rounded-xl border border-white/10 bg-coal p-4"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{e.customerName}</p>
-                    <p className="text-sm text-ink/60" dir="ltr">
+                    <p className="text-sm text-surface/60" dir="ltr">
                       {e.customerPhone}
                     </p>
                   </div>
-                  <span className="rounded-full bg-black/[0.06] px-3 py-1 text-xs font-medium">
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
                     {statusLabel(e.status)}
                   </span>
                 </div>
 
                 <dl className="mt-3 grid grid-cols-2 gap-y-1 text-sm">
-                  <dt className="text-ink/50">{dict.schedule.car}</dt>
+                  <dt className="text-surface/50">{dict.schedule.car}</dt>
                   <dd>{carName}</dd>
-                  <dt className="text-ink/50">{dict.schedule.installing}</dt>
+                  <dt className="text-surface/50">{dict.schedule.installing}</dt>
                   <dd>{installLabel(e.hasAir, e.hasCoil)}</dd>
-                  <dt className="text-ink/50">{dict.schedule.deposit}</dt>
+                  <dt className="text-surface/50">{dict.schedule.deposit}</dt>
                   <dd>{formatPrice(e.depositPiastres, typedLocale)}</dd>
-                  <dt className="text-ink/50">{dict.schedule.balance}</dt>
+                  <dt className="text-surface/50">{dict.schedule.balance}</dt>
                   <dd>{formatPrice(e.balancePiastres, typedLocale)}</dd>
                 </dl>
 
                 {e.coiloversAlreadyInstalled && (
-                  <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-xs text-amber-800">
+                  <p className="mt-2 rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-200">
                     {dict.schedule.coiloverStatedFlag}
                   </p>
                 )}
 
                 {e.note && (
-                  <p className="mt-2 text-sm text-ink/70">
-                    <span className="text-ink/50">{dict.schedule.note}: </span>
+                  <p className="mt-2 text-sm text-surface/70">
+                    <span className="text-surface/50">{dict.schedule.note}: </span>
                     {e.note}
                   </p>
                 )}
@@ -162,8 +162,8 @@ export default async function SchedulePage({
                           type="submit"
                           className={
                             status === "cancelled"
-                              ? "rounded-lg border border-red-300 px-3 py-1.5 text-xs text-red-700"
-                              : "rounded-lg border border-black/15 px-3 py-1.5 text-xs"
+                              ? "rounded-lg border border-red-400/60 px-3 py-1.5 text-xs text-red-300"
+                              : "rounded-lg border border-white/20 px-3 py-1.5 text-xs"
                           }
                         >
                           {label}

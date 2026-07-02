@@ -38,7 +38,7 @@ export default async function AdminHomePage({
             <input type="hidden" name="locale" value={typedLocale} />
             <button
               type="submit"
-              className="rounded-lg bg-ink px-3 py-1.5 text-xs font-medium text-surface"
+              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-surface"
             >
               {dict.admin.markAllSeen}
             </button>
@@ -49,27 +49,36 @@ export default async function AdminHomePage({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Link
           href={`${base}/admin/schedule`}
-          className="rounded-xl border border-black/10 bg-white p-5 transition-colors hover:border-accent"
+          className="rounded-xl border border-white/10 bg-coal p-5 transition-colors hover:border-accent"
         >
           <h2 className="font-semibold">{dict.schedule.title}</h2>
-          <p className="mt-2 text-sm text-ink/60">{dict.schedule.intro}</p>
+          <p className="mt-2 text-sm text-surface/60">{dict.schedule.intro}</p>
         </Link>
 
         <Link
           href={`${base}/admin/lookup`}
-          className="rounded-xl border border-black/10 bg-white p-5 transition-colors hover:border-accent"
+          className="rounded-xl border border-white/10 bg-coal p-5 transition-colors hover:border-accent"
         >
           <h2 className="font-semibold">{dict.admin.findOrder}</h2>
-          <p className="mt-2 text-sm text-ink/60">{dict.admin.findOrderIntro}</p>
+          <p className="mt-2 text-sm text-surface/60">{dict.admin.findOrderIntro}</p>
         </Link>
 
         {/* Car requests inbox — owner + staff. */}
         <Link
           href={`${base}/admin/requests`}
-          className="rounded-xl border border-black/10 bg-white p-5 transition-colors hover:border-accent"
+          className="rounded-xl border border-white/10 bg-coal p-5 transition-colors hover:border-accent"
         >
           <h2 className="font-semibold">{dict.requests.title}</h2>
-          <p className="mt-2 text-sm text-ink/60">{dict.requests.intro}</p>
+          <p className="mt-2 text-sm text-surface/60">{dict.requests.intro}</p>
+        </Link>
+
+        {/* Rim reservations (pickups) — owner + staff. Outside the install schedule. */}
+        <Link
+          href={`${base}/admin/rim-reservations`}
+          className="rounded-xl border border-white/10 bg-coal p-5 transition-colors hover:border-accent"
+        >
+          <h2 className="font-semibold">{dict.admin.rimReservations}</h2>
+          <p className="mt-2 text-sm text-surface/60">{dict.admin.rimReservationsIntro}</p>
         </Link>
 
         {/* Owner-only entries — staff never see these, AND the routes/queries
@@ -78,18 +87,18 @@ export default async function AdminHomePage({
           <>
             <Link
               href={`${base}/admin/revenue`}
-              className="rounded-xl border border-black/10 bg-white p-5 transition-colors hover:border-accent"
+              className="rounded-xl border border-white/10 bg-coal p-5 transition-colors hover:border-accent"
             >
               <h2 className="font-semibold">{dict.admin.revenueTitle}</h2>
-              <p className="mt-2 text-sm text-ink/60">{dict.admin.ownerOnly}</p>
+              <p className="mt-2 text-sm text-surface/60">{dict.admin.ownerOnly}</p>
             </Link>
 
             <Link
               href={`${base}/admin/staff`}
-              className="rounded-xl border border-black/10 bg-white p-5 transition-colors hover:border-accent"
+              className="rounded-xl border border-white/10 bg-coal p-5 transition-colors hover:border-accent"
             >
               <h2 className="font-semibold">{dict.staff.title}</h2>
-              <p className="mt-2 text-sm text-ink/60">{dict.admin.ownerOnly}</p>
+              <p className="mt-2 text-sm text-surface/60">{dict.admin.ownerOnly}</p>
             </Link>
           </>
         )}

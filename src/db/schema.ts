@@ -68,14 +68,36 @@ export const carRequestStatusEnum = pgEnum("car_request_status", [
 // Catalog: cars (air kits + coilovers attach to a car; rims do not)
 // ────────────────────────────────────────────────────────────────────
 
+// Brands are stored once (bilingual) so "Volkswagen" can never be duplicated
+// or misspelled. Cars reference a brand; products attach to cars.
+export const brands = pgTable(
+  "brands",
+  {
+    id: serial("id").primaryKey(),
+    slug: text("slug").notNull(),
+    nameEn: text("name_en").notNull(), // e.g. "Volkswagen"
+    nameAr: text("name_ar").notNull(), // e.g. "فولكس فاجن"
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("brands_slug_uq").on(t.slug)]
+);
+
+// A car = a specific model under a brand (e.g. Volkswagen → "Golf 5",
+// 2005–2009). `nameEn`/`nameAr` are denormalized display labels, kept in sync
+// with `brand + model` on every write so the rest of the app can keep reading
+// a single localized car name.
 export const cars = pgTable(
   "cars",
   {
     id: serial("id").primaryKey(),
     slug: text("slug").notNull(),
-    make: text("make").notNull(),
-    model: text("model").notNull(),
-    // Bilingual display label (e.g. "مرسيدس C-Class" / "Mercedes C-Class").
+    brandId: integer("brand_id")
+      .notNull()
+      .references(() => brands.id, { onDelete: "restrict" }),
+    model: text("model").notNull(), // "Golf 5"
+    // Denormalized "Brand Model" label (e.g. "Volkswagen Golf 5").
     nameEn: text("name_en").notNull(),
     nameAr: text("name_ar").notNull(),
     yearStart: integer("year_start"),
@@ -93,28 +115,25 @@ export const cars = pgTable(
 // Air kits: exactly ONE per car, with four parallel setups
 // ────────────────────────────────────────────────────────────────────
 
-export const airKits = pgTable(
-  "air_kits",
-  {
-    id: serial("id").primaryKey(),
-    // One air kit per car — enforced by the unique index below.
-    carId: integer("car_id")
-      .notNull()
-      .references(() => cars.id, { onDelete: "cascade" }),
-    titleEn: text("title_en").notNull(),
-    titleAr: text("title_ar").notNull(),
-    descriptionEn: text("description_en"),
-    descriptionAr: text("description_ar"),
-    // Optional product image (coilovers and rims already have their own).
-    imageUrl: text("image_url"),
-    isActive: boolean("is_active").notNull().default(true),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (t) => [uniqueIndex("air_kits_car_uq").on(t.carId)]
-);
+// An air kit is a PRODUCT LINE (not car-specific): a title, optional image,
+// and its four setups. It is fitted to one or more cars via `airKitFitments`,
+// and each fitment carries that car's own prices.
+export const airKits = pgTable("air_kits", {
+  id: serial("id").primaryKey(),
+  titleEn: text("title_en").notNull(),
+  titleAr: text("title_ar").notNull(),
+  descriptionEn: text("description_en"),
+  descriptionAr: text("description_ar"),
+  imageUrl: text("image_url"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
+// The four parallel setups of a kit. Feature lists are SHARED across every car
+// the kit fits (the capabilities are the same); only the price differs per car
+// (held on `airKitFitmentPrices`).
 export const airKitSetups = pgTable(
   "air_kit_setups",
   {
@@ -123,16 +142,49 @@ export const airKitSetups = pgTable(
       .notNull()
       .references(() => airKits.id, { onDelete: "cascade" }),
     setupType: setupTypeEnum("setup_type").notNull(),
-    // Price in piastres (integer) to avoid floating-point money errors.
-    pricePiastres: integer("price_piastres").notNull(),
-    // Each setup has its OWN feature list (bilingual, ordered arrays).
     featuresEn: text("features_en").array().notNull().default([]),
     featuresAr: text("features_ar").array().notNull().default([]),
     isActive: boolean("is_active").notNull().default(true),
   },
   (t) => [
-    // A given air kit has at most one row per setup type (4 setups max).
     uniqueIndex("air_kit_setups_kit_type_uq").on(t.airKitId, t.setupType),
+  ]
+);
+
+// Fitment: this kit fits this car. A car has at most ONE air kit (unique carId).
+export const airKitFitments = pgTable(
+  "air_kit_fitments",
+  {
+    id: serial("id").primaryKey(),
+    airKitId: integer("air_kit_id")
+      .notNull()
+      .references(() => airKits.id, { onDelete: "cascade" }),
+    carId: integer("car_id")
+      .notNull()
+      .references(() => cars.id, { onDelete: "cascade" }),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("air_kit_fitments_car_uq").on(t.carId)]
+);
+
+// The per-car price for a given setup type. THIS is the purchasable unit for an
+// air kit (cart/order items reference it). Price in piastres.
+export const airKitFitmentPrices = pgTable(
+  "air_kit_fitment_prices",
+  {
+    id: serial("id").primaryKey(),
+    fitmentId: integer("fitment_id")
+      .notNull()
+      .references(() => airKitFitments.id, { onDelete: "cascade" }),
+    setupType: setupTypeEnum("setup_type").notNull(),
+    pricePiastres: integer("price_piastres").notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+  },
+  (t) => [
+    uniqueIndex("air_kit_fitment_prices_uq").on(t.fitmentId, t.setupType),
   ]
 );
 
@@ -141,26 +193,44 @@ export const airKitSetups = pgTable(
 // distinguished by brand + manufacture date
 // ────────────────────────────────────────────────────────────────────
 
-export const coilovers = pgTable(
-  "coilovers",
+// A coilover is a PRODUCT (brand + manufacture date + image). It is fitted to
+// one or more cars via `coiloverFitments`, each carrying that car's price.
+export const coilovers = pgTable("coilovers", {
+  id: serial("id").primaryKey(),
+  brand: text("brand").notNull(), // coilover brand, e.g. "KW", "BC Racing"
+  manufactureDate: date("manufacture_date").notNull(),
+  descriptionEn: text("description_en"),
+  descriptionAr: text("description_ar"),
+  imageUrl: text("image_url"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Fitment: this coilover fits this car at this price. A car may have several
+// coilovers (many fitments); the SAME coilover may fit several cars. The
+// purchasable unit for a coilover is a fitment (cart/order items reference it).
+export const coiloverFitments = pgTable(
+  "coilover_fitments",
   {
     id: serial("id").primaryKey(),
+    coiloverId: integer("coilover_id")
+      .notNull()
+      .references(() => coilovers.id, { onDelete: "cascade" }),
     carId: integer("car_id")
       .notNull()
       .references(() => cars.id, { onDelete: "cascade" }),
-    brand: text("brand").notNull(),
-    // Manufacture date — distinguishes coilovers of the same brand for a car.
-    manufactureDate: date("manufacture_date").notNull(),
     pricePiastres: integer("price_piastres").notNull(),
-    descriptionEn: text("description_en"),
-    descriptionAr: text("description_ar"),
-    imageUrl: text("image_url"),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("coilovers_car_idx").on(t.carId)]
+  (t) => [
+    index("coilover_fitments_car_idx").on(t.carId),
+    uniqueIndex("coilover_fitments_uq").on(t.coiloverId, t.carId),
+  ]
 );
 
 // ────────────────────────────────────────────────────────────────────
@@ -254,14 +324,16 @@ export const orderItems = pgTable(
       .notNull()
       .references(() => orders.id, { onDelete: "cascade" }),
     kind: productKindEnum("kind").notNull(),
-    // Exactly one of these is set, matching `kind`.
-    airKitSetupId: integer("air_kit_setup_id").references(
-      () => airKitSetups.id,
+    // Exactly one of these is set, matching `kind`. Air kits / coilovers point
+    // at the per-car purchasable unit (a fitment price / a coilover fitment).
+    airKitFitmentPriceId: integer("air_kit_fitment_price_id").references(
+      () => airKitFitmentPrices.id,
       { onDelete: "set null" }
     ),
-    coiloverId: integer("coilover_id").references(() => coilovers.id, {
-      onDelete: "set null",
-    }),
+    coiloverFitmentId: integer("coilover_fitment_id").references(
+      () => coiloverFitments.id,
+      { onDelete: "set null" }
+    ),
     rimId: integer("rim_id").references(() => rims.id, { onDelete: "set null" }),
     // Snapshot of price + title at time of adding, so later edits don't
     // mutate historical orders.
@@ -362,13 +434,14 @@ export const cartItems = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     kind: productKindEnum("kind").notNull(),
     // Exactly one of these is set, matching `kind`.
-    airKitSetupId: integer("air_kit_setup_id").references(
-      () => airKitSetups.id,
+    airKitFitmentPriceId: integer("air_kit_fitment_price_id").references(
+      () => airKitFitmentPrices.id,
       { onDelete: "cascade" }
     ),
-    coiloverId: integer("coilover_id").references(() => coilovers.id, {
-      onDelete: "cascade",
-    }),
+    coiloverFitmentId: integer("coilover_fitment_id").references(
+      () => coiloverFitments.id,
+      { onDelete: "cascade" }
+    ),
     rimId: integer("rim_id").references(() => rims.id, { onDelete: "cascade" }),
     quantity: integer("quantity").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -379,12 +452,12 @@ export const cartItems = pgTable(
     index("cart_items_user_idx").on(t.userId),
     // Partial unique indexes guarantee at most one row per (user, product),
     // so "add" merges into a quantity bump instead of duplicating.
-    uniqueIndex("cart_items_user_setup_uq")
-      .on(t.userId, t.airKitSetupId)
-      .where(sql`${t.airKitSetupId} is not null`),
-    uniqueIndex("cart_items_user_coilover_uq")
-      .on(t.userId, t.coiloverId)
-      .where(sql`${t.coiloverId} is not null`),
+    uniqueIndex("cart_items_user_akprice_uq")
+      .on(t.userId, t.airKitFitmentPriceId)
+      .where(sql`${t.airKitFitmentPriceId} is not null`),
+    uniqueIndex("cart_items_user_cofit_uq")
+      .on(t.userId, t.coiloverFitmentId)
+      .where(sql`${t.coiloverFitmentId} is not null`),
     uniqueIndex("cart_items_user_rim_uq")
       .on(t.userId, t.rimId)
       .where(sql`${t.rimId} is not null`),
@@ -437,14 +510,19 @@ export const carRequests = pgTable("car_requests", {
 // Relations
 // ────────────────────────────────────────────────────────────────────
 
-export const carsRelations = relations(cars, ({ one, many }) => ({
-  airKit: one(airKits),
-  coilovers: many(coilovers),
+export const brandsRelations = relations(brands, ({ many }) => ({
+  cars: many(cars),
 }));
 
-export const airKitsRelations = relations(airKits, ({ one, many }) => ({
-  car: one(cars, { fields: [airKits.carId], references: [cars.id] }),
+export const carsRelations = relations(cars, ({ one, many }) => ({
+  brand: one(brands, { fields: [cars.brandId], references: [brands.id] }),
+  airKitFitment: one(airKitFitments),
+  coiloverFitments: many(coiloverFitments),
+}));
+
+export const airKitsRelations = relations(airKits, ({ many }) => ({
   setups: many(airKitSetups),
+  fitments: many(airKitFitments),
 }));
 
 export const airKitSetupsRelations = relations(airKitSetups, ({ one }) => ({
@@ -454,9 +532,42 @@ export const airKitSetupsRelations = relations(airKitSetups, ({ one }) => ({
   }),
 }));
 
-export const coiloversRelations = relations(coilovers, ({ one }) => ({
-  car: one(cars, { fields: [coilovers.carId], references: [cars.id] }),
+export const airKitFitmentsRelations = relations(
+  airKitFitments,
+  ({ one, many }) => ({
+    airKit: one(airKits, {
+      fields: [airKitFitments.airKitId],
+      references: [airKits.id],
+    }),
+    car: one(cars, { fields: [airKitFitments.carId], references: [cars.id] }),
+    prices: many(airKitFitmentPrices),
+  })
+);
+
+export const airKitFitmentPricesRelations = relations(
+  airKitFitmentPrices,
+  ({ one }) => ({
+    fitment: one(airKitFitments, {
+      fields: [airKitFitmentPrices.fitmentId],
+      references: [airKitFitments.id],
+    }),
+  })
+);
+
+export const coiloversRelations = relations(coilovers, ({ many }) => ({
+  fitments: many(coiloverFitments),
 }));
+
+export const coiloverFitmentsRelations = relations(
+  coiloverFitments,
+  ({ one }) => ({
+    coilover: one(coilovers, {
+      fields: [coiloverFitments.coiloverId],
+      references: [coilovers.id],
+    }),
+    car: one(cars, { fields: [coiloverFitments.carId], references: [cars.id] }),
+  })
+);
 
 export const cartItemsRelations = relations(cartItems, ({ one }) => ({
   user: one(users, { fields: [cartItems.userId], references: [users.id] }),
@@ -490,10 +601,14 @@ export const bookingDaysRelations = relations(bookingDays, ({ one }) => ({
 // Inferred types for use across the app
 // ────────────────────────────────────────────────────────────────────
 
+export type Brand = typeof brands.$inferSelect;
 export type Car = typeof cars.$inferSelect;
 export type AirKit = typeof airKits.$inferSelect;
 export type AirKitSetup = typeof airKitSetups.$inferSelect;
+export type AirKitFitment = typeof airKitFitments.$inferSelect;
+export type AirKitFitmentPrice = typeof airKitFitmentPrices.$inferSelect;
 export type Coilover = typeof coilovers.$inferSelect;
+export type CoiloverFitment = typeof coiloverFitments.$inferSelect;
 export type Rim = typeof rims.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Order = typeof orders.$inferSelect;

@@ -33,12 +33,14 @@ export default async function CartPage({
   const isAr = typedLocale === "ar";
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-3xl font-bold">{dict.cart.title}</h1>
+    <div className="grow bg-ink text-surface">
+      <div className="mx-auto max-w-3xl px-4 py-14 sm:py-20">
+        <p className="cat-label">{dict.nav.cart}</p>
+        <h1 className="display mt-2 text-4xl uppercase sm:text-5xl">{dict.cart.title}</h1>
 
       {cart.lines.length === 0 ? (
         <div className="mt-6">
-          <p className="text-ink/60">{dict.cart.empty}</p>
+          <p className="text-surface/60">{dict.cart.empty}</p>
           <Link
             href={`/${typedLocale}/air-kits`}
             className="mt-3 inline-block font-semibold text-accent underline"
@@ -48,7 +50,7 @@ export default async function CartPage({
         </div>
       ) : (
         <>
-          <ul className="mt-6 divide-y divide-black/10 rounded-xl border border-black/10 bg-white">
+          <ul className="mt-8 divide-y divide-white/10 rounded-xl border border-white/10 bg-coal">
             {cart.lines.map((line) => {
               const name = isAr ? line.nameAr : line.nameEn;
               const sub =
@@ -67,13 +69,13 @@ export default async function CartPage({
                 >
                   <div className="min-w-0">
                     <p className="font-medium">{name}</p>
-                    {sub && <p className="text-sm text-ink/50">{sub}</p>}
+                    {sub && <p className="text-sm text-surface/50">{sub}</p>}
                     {line.requiresInstall && (
                       <p className="mt-1 text-xs text-accent">
                         {dict.cart.requiresInstall}
                       </p>
                     )}
-                    <p className="mt-1 text-sm text-ink/60">
+                    <p className="mt-1 text-sm text-surface/60">
                       {line.quantity} × {formatPrice(line.unitPricePiastres, typedLocale)}
                     </p>
                   </div>
@@ -90,7 +92,7 @@ export default async function CartPage({
                       />
                       <button
                         type="submit"
-                        className="text-xs text-red-700 underline"
+                        className="text-xs text-red-300 underline"
                       >
                         {dict.cart.remove}
                       </button>
@@ -102,22 +104,22 @@ export default async function CartPage({
           </ul>
 
           {/* Totals — server-computed; deposit is % of installable items only. */}
-          <div className="mt-6 rounded-xl border border-black/10 bg-black/[0.02] p-5 text-sm">
+          <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-5 text-sm">
             <div className="flex justify-between py-1">
-              <span className="text-ink/60">{dict.cart.subtotal}</span>
+              <span className="text-surface/60">{dict.cart.subtotal}</span>
               <span className="font-medium">
                 {formatPrice(cart.subtotalPiastres, typedLocale)}
               </span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-ink/60">
+              <span className="text-surface/60">
                 {dict.cart.installDeposit} ({cart.depositPercent}%)
               </span>
               <span className="font-semibold text-accent">
                 {formatPrice(cart.depositPiastres, typedLocale)}
               </span>
             </div>
-            <p className="mt-3 text-xs text-ink/50">
+            <p className="mt-3 text-xs text-surface/50">
               {dict.cart.depositNote.replace(
                 "{percent}",
                 String(cart.depositPercent)
@@ -127,19 +129,28 @@ export default async function CartPage({
 
           {cart.lines.some((l) => l.requiresInstall) ? (
             <div className="mt-5">
-              <p className="text-sm text-ink/60">{dict.cart.installNote}</p>
+              <p className="text-sm text-surface/60">{dict.cart.installNote}</p>
               <Link
                 href={`/${typedLocale}/booking`}
-                className="mt-2 inline-block rounded-lg bg-ink px-5 py-3 text-sm font-semibold text-surface"
+                className="mt-2 inline-block rounded-md bg-accent px-5 py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90"
               >
                 {dict.cart.bookInstall}
               </Link>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-ink/50">{dict.cart.checkoutSoon}</p>
+            <div className="mt-5">
+              <p className="text-sm text-surface/60">{dict.cart.rimNote}</p>
+              <Link
+                href={`/${typedLocale}/reserve`}
+                className="mt-2 inline-block rounded-md bg-accent px-5 py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90"
+              >
+                {dict.cart.reserveRims}
+              </Link>
+            </div>
           )}
         </>
       )}
+      </div>
     </div>
   );
 }

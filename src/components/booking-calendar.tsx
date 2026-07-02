@@ -45,12 +45,12 @@ export function BookingCalendar({
   const offset = (firstDow + 1) % 7; // Sat=0, Sun=1, ...
 
   return (
-    <div className="rounded-xl border border-black/10 bg-white p-4">
+    <div className="rounded-xl border border-white/10 bg-coal p-4 text-surface">
       <div className="mb-3 flex items-center justify-between">
         <Link
           href={prevHref}
           aria-label={prevLabel}
-          className="rounded-lg border border-black/15 px-3 py-1 text-sm"
+          className="rounded-lg border border-white/20 px-3 py-1 text-sm transition-colors hover:border-accent"
         >
           ‹
         </Link>
@@ -58,13 +58,13 @@ export function BookingCalendar({
         <Link
           href={nextHref}
           aria-label={nextLabel}
-          className="rounded-lg border border-black/15 px-3 py-1 text-sm"
+          className="rounded-lg border border-white/20 px-3 py-1 text-sm transition-colors hover:border-accent"
         >
           ›
         </Link>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-xs text-ink/50">
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-surface/50">
         {weekdayLabels.map((w, i) => (
           <div key={i} className="py-1">
             {w}
@@ -84,7 +84,7 @@ export function BookingCalendar({
               type="submit"
               name="day"
               value={d.dateISO}
-              className="aspect-square rounded-lg border border-black/15 bg-white text-sm font-medium transition-colors hover:border-accent hover:bg-accent/10"
+              className="aspect-square rounded-lg border border-white/20 bg-white/5 text-sm font-medium transition-colors hover:border-accent hover:bg-accent/20"
             >
               {d.dayNum}
             </button>
@@ -92,7 +92,7 @@ export function BookingCalendar({
             <div
               key={d.dateISO}
               aria-disabled="true"
-              className="flex aspect-square items-center justify-center rounded-lg bg-black/[0.04] text-sm text-ink/25"
+              className="flex aspect-square items-center justify-center rounded-lg bg-white/[0.03] text-sm text-surface/25"
             >
               {d.dayNum}
             </div>

@@ -26,15 +26,17 @@ export default async function AdminLayout({
     user.role === "owner" ? dict.account.roleOwner : dict.account.roleStaff;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{dict.admin.title}</h1>
-        <span className="rounded-full bg-ink px-3 py-1 text-xs font-medium text-surface">
-          {dict.admin.yourRole}: {roleLabel}
-        </span>
+    <div className="grow bg-ink text-surface">
+      <div className="mx-auto max-w-4xl px-4 py-14">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="display text-3xl uppercase sm:text-4xl">{dict.admin.title}</h1>
+          <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">
+            {dict.admin.yourRole}: {roleLabel}
+          </span>
+        </div>
+        <p className="mt-2 text-surface/60">{dict.admin.intro}</p>
+        <div className="mt-8">{children}</div>
       </div>
-      <p className="mt-1 text-ink/60">{dict.admin.intro}</p>
-      <div className="mt-8">{children}</div>
     </div>
   );
 }

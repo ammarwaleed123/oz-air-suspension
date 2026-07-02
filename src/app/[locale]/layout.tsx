@@ -49,7 +49,7 @@ export default async function LocaleLayout({
     <html lang={typedLocale} dir={dir}>
       <body className="flex min-h-dvh flex-col antialiased">
         <SiteHeader locale={typedLocale} dict={dict} />
-        <main className="flex-1">{children}</main>
+        <main className="flex flex-1 flex-col">{children}</main>
         <SiteFooter locale={typedLocale} dict={dict} />
       </body>
     </html>

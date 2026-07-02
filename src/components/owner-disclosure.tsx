@@ -8,18 +8,33 @@ export function OwnerDisclosure({
   children,
   variant = "primary",
   open = false,
+  dark = false,
 }: {
   label: string;
   children: ReactNode;
   variant?: "primary" | "ghost" | "danger";
   open?: boolean;
+  // `dark` renders the control for the near-black site theme (used by the
+  // owner console on restyled catalog pages). Default stays light for /admin
+  // and not-yet-restyled pages.
+  dark?: boolean;
 }) {
-  const look =
-    variant === "primary"
-      ? "bg-ink text-surface px-4 py-2 text-sm rounded-lg"
-      : variant === "danger"
-        ? "border border-red-300 text-red-700 px-3 py-1.5 text-xs rounded-md"
-        : "border border-black/15 px-3 py-1.5 text-xs rounded-md";
+  const looks = {
+    light: {
+      primary: "bg-ink text-surface px-4 py-2 text-sm rounded-lg",
+      danger: "border border-red-300 text-red-700 px-3 py-1.5 text-xs rounded-md",
+      ghost: "border border-black/15 px-3 py-1.5 text-xs rounded-md",
+      panel: "border-black/10 bg-white",
+    },
+    dark: {
+      primary: "bg-accent text-white px-4 py-2 text-sm rounded-lg",
+      danger: "border border-red-400/60 text-red-300 px-3 py-1.5 text-xs rounded-md",
+      ghost: "border border-white/25 text-surface px-3 py-1.5 text-xs rounded-md",
+      panel: "border-white/10 bg-white/[0.03]",
+    },
+  };
+  const t = dark ? looks.dark : looks.light;
+  const look = t[variant];
 
   return (
     <details open={open} className="group">
@@ -31,7 +46,7 @@ export function OwnerDisclosure({
           <span>{label}</span>
         </span>
       </summary>
-      <div className="mt-3 rounded-xl border border-black/10 bg-white p-4 text-start">
+      <div className={`mt-3 rounded-xl border p-4 text-start ${t.panel}`}>
         {children}
       </div>
     </details>

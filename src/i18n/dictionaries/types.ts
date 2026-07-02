@@ -9,12 +9,14 @@ export type Dictionary = {
     rims: string;
     builds: string;
     airVsCoilovers: string;
+    about: string;
     requestCar: string;
     account: string;
     cart: string;
     admin: string;
     signIn: string;
     signOut: string;
+    whatsapp: string;
   };
   common: {
     currency: string;
@@ -40,6 +42,32 @@ export type Dictionary = {
     browseAirKits: string;
     browseCoilovers: string;
     browseRims: string;
+    locationTag: string;
+    findMyBuild: string;
+    selectMake: string;
+    selectModel: string;
+    yearLabel: string;
+    pickerEmpty: string;
+    requestYourCar: string;
+    trustAuthorizedLabel: string;
+    trustAuthorizedText: string;
+    trustPrecisionLabel: string;
+    trustPrecisionText: string;
+    trustWarrantyLabel: string;
+    trustWarrantyText: string;
+    pickPathLabel: string;
+    pickPathTitle: string;
+    explore: string;
+    buildsLabel: string;
+    buildsTitle: string;
+    buildsSub: string;
+    viewAll: string;
+    guideLabel: string;
+    guideTitle: string;
+    guideSub: string;
+    guideAir: string;
+    guideCoil: string;
+    readGuide: string;
   };
   airKits: {
     title: string;
@@ -50,6 +78,11 @@ export type Dictionary = {
     choosePrompt: string;
     noCars: string;
     disclaimer: string;
+    step1Label: string;
+    pickChassis: string;
+    step2Label: string;
+    compareTitle: string;
+    depositNote: string;
     setupLabels: {
       low_normal_slow: string;
       low_fast: string;
@@ -78,6 +111,8 @@ export type Dictionary = {
     apply: string;
     noResults: string;
     resultsCount: string;
+    outOfStock: string;
+    inStock: string;
   };
   booking: {
     title: string;
@@ -219,6 +254,22 @@ export type Dictionary = {
     hidden: string;
     deactivate: string;
     reactivate: string;
+    brandsTitle: string;
+    addBrand: string;
+    chooseBrand: string;
+    brandHasCars: string;
+    airKitProducts: string;
+    coiloverProducts: string;
+    assignToCar: string;
+    fittedCars: string;
+    noFitments: string;
+    removeFitment: string;
+    mfgDate: string;
+    coiloverBrand: string;
+    setupPricesHint: string;
+    noProducts: string;
+    pickKit: string;
+    pickCoilover: string;
   };
   staff: {
     title: string;
@@ -336,6 +387,28 @@ export type Dictionary = {
     added: string;
     bookInstall: string;
     installNote: string;
+    reserveRims: string;
+    rimNote: string;
+  };
+  reserve: {
+    title: string;
+    intro: string;
+    dayLabel: string;
+    dayHint: string;
+    note: string;
+    notePlaceholder: string;
+    submit: string;
+    total: string;
+    payOnCollection: string;
+    empty: string;
+    browse: string;
+    errNoRims: string;
+    errInvalidDay: string;
+    errOutOfStock: string;
+    errGeneric: string;
+    reservedTitle: string;
+    reservedMsg: string;
+    collectionDay: string;
   };
   account: {
     title: string;
@@ -365,6 +438,58 @@ export type Dictionary = {
     findOrderIntro: string;
     newBookings: string;
     markAllSeen: string;
+    rimReservations: string;
+    rimReservationsIntro: string;
   };
-  footer: { rights: string; location: string };
+  rimRes: {
+    title: string;
+    intro: string;
+    empty: string;
+    collectionDay: string;
+    items: string;
+    total: string;
+    reservedOn: string;
+    note: string;
+    markPickedUp: string;
+    cancelReturn: string;
+    statusConfirmed: string;
+    statusCompleted: string;
+    statusNoShow: string;
+    statusCancelled: string;
+  };
+  footer: {
+    rights: string;
+    location: string;
+    description: string;
+    shopLabel: string;
+    connectLabel: string;
+    address: string;
+    messageWhatsapp: string;
+    designedFor: string;
+  };
+  about: {
+    label: string;
+    title: string;
+    placeholderTag: string;
+    story1: string;
+    story2: string;
+    contactLabel: string;
+    contactTitle: string;
+    visitLabel: string;
+    whatsappLabel: string;
+    callLabel: string;
+    openMap: string;
+  };
+  compare: {
+    title: string;
+    feature: string;
+    air: string;
+    coil: string;
+    rideHeight: string;
+    trackPerf: string;
+    dailyComfort: string;
+    lowMaintenance: string;
+    parkedStance: string;
+    lowerPrice: string;
+  };
 };

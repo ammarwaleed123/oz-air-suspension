@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, count, eq, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   bookingDays,
@@ -8,6 +8,7 @@ import {
   cars,
   orderItems,
   orders,
+  rims,
   users,
 } from "@/db/schema";
 import { computeCart } from "@/lib/cart";
@@ -50,7 +51,10 @@ export type BookingErrorCode =
   | "slot_unavailable"
   | "not_found"
   | "not_holdable"
-  | "slot_taken";
+  | "slot_taken"
+  | "no_rims" // rim reservation with an empty (non-rim) cart
+  | "has_install" // rim reservation attempted while install items are in cart
+  | "out_of_stock"; // not enough rim stock at confirmation time
 
 export class BookingError extends Error {
   constructor(public code: BookingErrorCode) {
@@ -241,8 +245,9 @@ export async function createHold(
         cart.lines.map((l) => ({
           orderId: order.id,
           kind: l.kind,
-          airKitSetupId: l.kind === "air_kit_setup" ? l.productId : null,
-          coiloverId: l.kind === "coilover" ? l.productId : null,
+          airKitFitmentPriceId:
+            l.kind === "air_kit_setup" ? l.productId : null,
+          coiloverFitmentId: l.kind === "coilover" ? l.productId : null,
           rimId: l.kind === "rim" ? l.productId : null,
           titleEn: l.nameEn,
           titleAr: l.nameAr,
@@ -276,6 +281,203 @@ export async function createHold(
     ]);
 
     return { bookingId: booking.id };
+  });
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Rim reservation — OUTSIDE the install scheduler
+// ────────────────────────────────────────────────────────────────────
+
+// Rims need no install work, so a rim-only order does NOT consume an install
+// slot: it books no `booking_days` rows and is therefore never counted against
+// the daily capacity (the 4-cars/day limit) that governs air kits & coilovers.
+// The customer may pick ANY future day for collection; the booking is created
+// already "confirmed" (there is no deposit hold — the full amount is due on
+// collection). Returns the new booking id, reusing the receipt/account views.
+export type RimReservationInput = {
+  dayISO: string;
+  note?: string;
+};
+
+export async function createRimReservation(
+  userId: number,
+  input: RimReservationInput
+): Promise<{ bookingId: number }> {
+  // Free up any stock held by reservations whose collection day already lapsed
+  // without pickup, so it's available to this customer.
+  await reconcileLapsedRimReservations();
+
+  const cart = await computeCart(userId);
+  if (cart.lines.length === 0) throw new BookingError("no_rims");
+  // This path is rims-only. Anything installable must go through createHold.
+  if (cart.lines.some((l) => l.requiresInstall)) {
+    throw new BookingError("has_install");
+  }
+
+  // Any day from today (Cairo) onward — no working-day or capacity constraint.
+  const today = todayInCairo();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dayISO) || input.dayISO < today) {
+    throw new BookingError("invalid_day");
+  }
+
+  return db.transaction(async (tx) => {
+    // Decrement stock for each rim, atomically. The `stock >= qty` guard makes
+    // this race-safe: if two customers race for the last set, only one UPDATE
+    // matches — the other gets 0 rows and we roll back with out_of_stock.
+    for (const line of cart.lines) {
+      if (line.kind !== "rim") continue;
+      const dec = await tx
+        .update(rims)
+        .set({ stock: sql`${rims.stock} - ${line.quantity}` })
+        .where(and(eq(rims.id, line.productId), gte(rims.stock, line.quantity)))
+        .returning({ id: rims.id });
+      if (dec.length === 0) throw new BookingError("out_of_stock");
+    }
+
+    const [order] = await tx
+      .insert(orders)
+      .values({
+        userId,
+        status: "awaiting_deposit",
+        subtotalPiastres: cart.subtotalPiastres,
+        depositPiastres: 0,
+      })
+      .returning();
+
+    await tx.insert(orderItems).values(
+      cart.lines.map((l) => ({
+        orderId: order.id,
+        kind: l.kind,
+        airKitFitmentPriceId: null,
+        coiloverFitmentId: null,
+        rimId: l.kind === "rim" ? l.productId : null,
+        titleEn: l.nameEn,
+        titleAr: l.nameAr,
+        unitPricePiastres: l.unitPricePiastres,
+        quantity: l.quantity,
+        requiresInstall: false,
+      }))
+    );
+
+    // A rim reservation reuses the bookings row (single collection day, no car,
+    // no deposit) but creates NO booking_days — so it never occupies a slot.
+    const [booking] = await tx
+      .insert(bookings)
+      .values({
+        orderId: order.id,
+        userId,
+        carId: null,
+        startDate: input.dayISO,
+        endDate: input.dayISO,
+        status: "confirmed",
+        expiresAt: null,
+        depositPiastres: 0,
+        notes: input.note?.trim() || null,
+      })
+      .returning();
+
+    // Reservation placed — clear the cart.
+    await tx.delete(cartItems).where(eq(cartItems.userId, userId));
+
+    return { bookingId: booking.id };
+  });
+}
+
+// A booking is a rim reservation iff it has line items and NONE of them require
+// install (rims only). Install bookings always carry an installable item.
+type BookingWithItems = {
+  order: { items: { kind: string; rimId: number | null; quantity: number; requiresInstall: boolean }[] } | null;
+};
+function isRimReservation(b: BookingWithItems): boolean {
+  const items = b.order?.items ?? [];
+  return items.length > 0 && items.every((it) => !it.requiresInstall);
+}
+
+// Restore stock for every rim line of a booking (used when a reservation is
+// returned to inventory — lapsed no-show or owner cancellation).
+async function restoreRimStock(
+  tx: Queryer & Pick<typeof db, "update">,
+  items: { kind: string; rimId: number | null; quantity: number }[]
+): Promise<void> {
+  for (const it of items) {
+    if (it.kind === "rim" && it.rimId) {
+      await tx
+        .update(rims)
+        .set({ stock: sql`${rims.stock} + ${it.quantity}` })
+        .where(eq(rims.id, it.rimId));
+    }
+  }
+}
+
+// Return stock for rim reservations whose collection day has passed without
+// pickup. Idempotent: the confirmed→no_show flip is the guard, so stock is
+// restored exactly once even if this runs concurrently or repeatedly. Cheap on
+// the common path (a single SELECT that usually finds nothing).
+export async function reconcileLapsedRimReservations(): Promise<void> {
+  const today = todayInCairo();
+  const candidates = await db.query.bookings.findMany({
+    where: and(eq(bookings.status, "confirmed"), lt(bookings.endDate, today)),
+    with: { order: { with: { items: true } } },
+  });
+  const lapsed = candidates.filter(isRimReservation);
+  if (lapsed.length === 0) return;
+
+  await db.transaction(async (tx) => {
+    for (const b of lapsed) {
+      // Only restore if THIS call wins the confirmed→no_show transition.
+      const flipped = await tx
+        .update(bookings)
+        .set({ status: "no_show" })
+        .where(and(eq(bookings.id, b.id), eq(bookings.status, "confirmed")))
+        .returning({ id: bookings.id });
+      if (flipped.length === 0) continue;
+      await restoreRimStock(tx, b.order!.items);
+    }
+  });
+}
+
+// Owner/staff list of rim reservations (newest first) with items + customer.
+export async function getRimReservations() {
+  const rows = await db.query.bookings.findMany({
+    where: isNull(bookings.carId), // rim reservations carry no car
+    orderBy: (b, { desc }) => [desc(b.createdAt)],
+    with: { order: { with: { items: true } }, user: true },
+  });
+  return rows.filter(isRimReservation);
+}
+
+// Owner/staff action on a rim reservation:
+//   • "completed" = picked up & paid → stock stays deducted (sold).
+//   • "cancelled" = returned → restore stock (only if still holding it).
+export async function setRimReservationStatus(
+  bookingId: number,
+  status: "completed" | "cancelled"
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    const booking = await tx.query.bookings.findFirst({
+      where: eq(bookings.id, bookingId),
+      with: { order: { with: { items: true } } },
+    });
+    if (!booking || !isRimReservation(booking)) {
+      throw new BookingError("not_found");
+    }
+
+    if (status === "cancelled") {
+      // Restore stock only when moving out of the confirmed (holding) state.
+      const flipped = await tx
+        .update(bookings)
+        .set({ status: "cancelled" })
+        .where(and(eq(bookings.id, bookingId), eq(bookings.status, "confirmed")))
+        .returning({ id: bookings.id });
+      if (flipped.length > 0) await restoreRimStock(tx, booking.order!.items);
+      return;
+    }
+
+    // Picked up — stock remains deducted.
+    await tx
+      .update(bookings)
+      .set({ status: "completed" })
+      .where(eq(bookings.id, bookingId));
   });
 }
 
